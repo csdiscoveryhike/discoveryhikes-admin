@@ -222,6 +222,46 @@ button.loading::after {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ===== TOAST NOTIFICATION ===== */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #111827;
+  color: #f9fafb;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  z-index: 9999;
+  max-width: 90%;
+  text-align: center;
+}
+
+/* Visible */
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Variants */
+.toast.error {
+  background: linear-gradient(135deg, #7f1d1d, #991b1b);
+}
+
+.toast.success {
+  background: linear-gradient(135deg, #064e3b, #065f46);
+}
+
+.toast.info {
+  background: linear-gradient(135deg, #1e3a8a, #1d4ed8);
+}
+
 </style>
 </head>
 
@@ -282,24 +322,30 @@ function toggleDark() {
   );
 }
 
+function showToast(message, type = "info", duration = 3000) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.className = `toast show ${type}`;
+
+  setTimeout(() => {
+    toast.className = "toast";
+  }, duration);
+}
+
 /* Placeholder for next step */
 
 const API_URL = "https://script.google.com/macros/s/AKfycbziIaYIB0YL3RCPCTfINUeEerDscp3xJcO0nrw7wtgwXmezgpg78pG1btspJ7WJpZue/exec";
 
 function login() {
-  const useridInput = document.getElementById("userid");
-  const passwordInput = document.getElementById("password");
+  const userid = document.getElementById("userid").value.trim();
+  const password = document.getElementById("password").value;
   const button = document.querySelector("button");
 
-  const userid = useridInput.value.trim();
-  const password = passwordInput.value;
-
   if (!userid || !password) {
-    alert("Please enter User ID and Password");
+    showToast("⚠️ Please enter User ID and Password", "info");
     return;
   }
 
-  // 🔒 Enter loading state
   button.classList.add("loading");
   button.textContent = "Signing in…";
 
@@ -313,14 +359,16 @@ function login() {
     .then(r => r.json())
     .then(d => {
       if (d.success) {
-        window.location.href = "admin.html?token=" + d.token;
+        showToast("✅ Access granted", "success", 1200);
+        setTimeout(() => {
+          window.location.href = "admin.html?token=" + d.token;
+        }, 800);
       } else {
-        throw new Error("Invalid credentials");
+        throw new Error();
       }
     })
     .catch(() => {
-      alert("Invalid credentials");
-      // 🔁 Reset UI
+      showToast("❌ Invalid credentials", "error");
       button.classList.remove("loading");
       button.textContent = "Continue";
     });
@@ -328,6 +376,6 @@ function login() {
 
 
 </script>
-
+<div id="toast" class="toast"></div>
 </body>
 </html>
