@@ -223,43 +223,53 @@ button.loading::after {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ===== TOAST NOTIFICATION (PREMIUM POSITION) ===== */
-.toast {
-  position: absolute;
-  top: -14px;                 /* sits just above the card */
-  left: 50%;
-  transform: translateX(-50%) translateY(-6px);
-  background: #111827;
-  color: #f9fafb;
-  padding: 10px 14px;
+/* ===== INLINE STATUS MESSAGE (PRO UX) ===== */
+.status {
+  margin: 10px 0 14px;
+  padding: 10px 12px;
   border-radius: 10px;
   font-size: 13px;
   font-weight: 500;
-  box-shadow: 0 10px 24px rgba(0,0,0,0.35);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease, transform 0.25s ease;
-  z-index: 5;
-  white-space: nowrap;
-}
-
-/* Visible */
-.toast.show {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   opacity: 1;
-  transform: translateX(-50%) translateY(0);
+  transition: opacity 0.2s ease;
 }
 
-/* Variants */
-.toast.error {
-  background: linear-gradient(135deg, #7f1d1d, #991b1b);
+.status.hidden {
+  display: none;
 }
 
-.toast.success {
-  background: linear-gradient(135deg, #064e3b, #065f46);
+.status.error {
+  background: #fdecea;
+  color: #7f1d1d;
 }
 
-.toast.info {
-  background: linear-gradient(135deg, #1e3a8a, #1d4ed8);
+.status.success {
+  background: #e6f7f1;
+  color: #065f46;
+}
+
+.status.info {
+  background: #e8f0fe;
+  color: #1e3a8a;
+}
+
+/* Dark mode */
+body.dark .status.error {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+}
+
+body.dark .status.success {
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+}
+
+body.dark .status.info {
+  background: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
 }
 
 
@@ -300,9 +310,9 @@ button.loading::after {
   </div>
   <!-- LOGIN CARD -->
   <div class="card">
-  <div id="toast" class="toast"></div>
     <h2>Sign in to continue</h2>
     <p>Use your assigned admin credentials</p>
+    <div id="statusMsg" class="status hidden"></div>
 
     <input
       type="text"
@@ -342,14 +352,10 @@ function toggleDark() {
   );
 }
 
-function showToast(message, type = "info", duration = 3000) {
-  const toast = document.getElementById("toast");
-  toast.textContent = message;
-  toast.className = `toast show ${type}`;
-
-  setTimeout(() => {
-    toast.className = "toast";
-  }, duration);
+function showStatus(message, type = "info") {
+  const box = document.getElementById("statusMsg");
+  box.textContent = message;
+  box.className = `status ${type}`;
 }
 
 /* Placeholder for next step */
@@ -362,7 +368,7 @@ function login() {
   const button = document.querySelector("button");
 
   if (!userid || !password) {
-    showToast("⚠️ Please enter User ID and Password", "info");
+    showStatus("⚠️ Please enter User ID and Password", "info");
     return;
   }
 
@@ -379,7 +385,7 @@ function login() {
     .then(r => r.json())
     .then(d => {
       if (d.success) {
-        showToast("✅ Access granted", "success", 1200);
+        showStatus("✅ Access granted", "success", 1200);
         setTimeout(() => {
           window.location.href = "admin.html?token=" + d.token;
         }, 800);
@@ -388,7 +394,7 @@ function login() {
       }
     })
     .catch(() => {
-  showToast("❌ Invalid credentials", "error");
+showStatus("❌ Invalid credentials", "error");
 
   const card = document.querySelector(".card");
 
