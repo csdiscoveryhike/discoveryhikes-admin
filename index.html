@@ -276,7 +276,7 @@ button.loading::after {
 }
 
 .shake {
-  animation: shake 0.45s ease;
+  animation: shake 0.45s ease both;
 }
 
 
@@ -389,6 +389,8 @@ function login() {
   showToast("❌ Invalid credentials", "error");
 
   const card = document.querySelector(".card");
+  card.classList.remove("shake");
+  void card.offsetWidth; // force reflow
   card.classList.add("shake");
 
   setTimeout(() => card.classList.remove("shake"), 500);
@@ -396,6 +398,7 @@ function login() {
   button.classList.remove("loading");
   button.textContent = "Continue";
 });
+
 
 }
 
