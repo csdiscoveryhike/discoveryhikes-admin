@@ -275,8 +275,10 @@ button.loading::after {
   100% { transform: translateX(0); }
 }
 
-.shake {
-  animation: shake 0.45s ease both;
+.card.shake {
+  animation-name: shake;
+  animation-duration: 0.45s;
+  animation-timing-function: ease;
 }
 
 
@@ -389,15 +391,17 @@ function login() {
   showToast("❌ Invalid credentials", "error");
 
   const card = document.querySelector(".card");
-  card.classList.remove("shake");
-  void card.offsetWidth; // force reflow
+
   card.classList.add("shake");
 
-  setTimeout(() => card.classList.remove("shake"), 500);
+  setTimeout(() => {
+    card.classList.remove("shake");
+  }, 450);
 
   button.classList.remove("loading");
   button.textContent = "Continue";
 });
+
 
 
 }
