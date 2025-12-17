@@ -19,6 +19,11 @@
 
 
 <style>
+
+  body {
+  visibility: hidden;
+}
+
 /* ================= THEME VARIABLES ================= */
 :root {
   --primary: #00254d;
@@ -422,6 +427,12 @@ body.dark .restricted {
 </div>
 
 <script>
+  window.addEventListener("pageshow", e => {
+  if (e.persisted) {
+    window.location.reload();
+  }
+});
+
 /* Persist Dark Mode */
 const storedTheme = localStorage.getItem("dh-theme");
 if (storedTheme === "dark") {
@@ -458,12 +469,19 @@ fetch(API_URL + "?action=validate&token=" + encodeURIComponent(token))
   .then(r => r.json())
   .then(d => {
     if (!d.valid) {
+      sessionStorage.removeItem("dh_token");
       window.location.href = "./";
     } else {
-      // ✅ STEP 1 FIX — remove token from URL
+      // show page only AFTER validation
+      document.body.style.visibility = "visible";
       window.history.replaceState({}, document.title, "./");
     }
+  })
+  .catch(() => {
+    sessionStorage.removeItem("dh_token");
+    window.location.href = "./";
   });
+
 
 
 
@@ -473,7 +491,9 @@ const sessionText = document.getElementById("sessionText");
 
 logoutBtn.addEventListener("click", () => {
   logoutBtn.classList.add("loading");
-  logoutBtn.textContent = "Logging out";
+  logoutBtn.textContent = "Logging out…";
+  logoutBtn.disabled = true;
+
   sessionText.textContent = "Ending secure session…";
 
   fetch(API_URL + "?action=logout&token=" + encodeURIComponent(token))
