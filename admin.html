@@ -461,7 +461,7 @@ if (token) {
 
 // Block access without token
 if (!token) {
-  window.location.href = "./";
+  window.location.href = "/index.html";
 }
 
 // Validate token
@@ -470,7 +470,7 @@ fetch(API_URL + "?action=validate&token=" + encodeURIComponent(token))
   .then(d => {
     if (!d.valid) {
       sessionStorage.removeItem("dh_token");
-      window.location.href = "./";
+      window.location.href = "/index.html";
     } else {
       // show page only AFTER validation
       document.body.style.visibility = "visible";
@@ -479,7 +479,7 @@ fetch(API_URL + "?action=validate&token=" + encodeURIComponent(token))
   })
   .catch(() => {
     sessionStorage.removeItem("dh_token");
-    window.location.href = "./";
+    window.location.href = "/index.html";
   });
 
 
@@ -503,7 +503,7 @@ logoutBtn.addEventListener("click", () => {
       token = null;
 
       setTimeout(() => {
-        window.location.href = "./";
+        window.location.href = "/index.html";
       }, 400);
     });
 });
