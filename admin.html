@@ -427,13 +427,12 @@ body.dark .restricted {
 </div>
 
 <script>
-  window.addEventListener("pageshow", e => {
-  if (e.persisted) {
-    window.location.reload();
-  }
+/* ===== Prevent BFCache reopen ===== */
+window.addEventListener("pageshow", e => {
+  if (e.persisted) location.reload();
 });
 
-/* Persist Dark Mode */
+/* ===== Persist Dark Mode ===== */
 const storedTheme = localStorage.getItem("dh-theme");
 if (storedTheme === "dark") {
   document.body.classList.add("dark");
@@ -447,45 +446,49 @@ function toggleDark() {
   );
 }
 
-/* ================= AUTH + LOGOUT LOGIC ================= */
+/* ===== AUTH + SESSION LOGIC ===== */
 
-const API_URL = "https://script.google.com/macros/s/AKfycbyjZj5lamp08aFTgoaVooXJVuBeFc1GjJH_poeA2EqZNfZlkg-3x99fZYbfvNKQgSps/exec";
-let token = new URLSearchParams(window.location.search).get("token");
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbyjZj5lamp08aFTgoaVooXJVuBeFc1GjJH_poeA2EqZNfZlkg-3x99fZYbfvNKQgSps/exec";
 
-if (token) {
-  sessionStorage.setItem("dh_token", token);
-} else {
-  token = sessionStorage.getItem("dh_token");
+// Read token safely (URL first, then session)
+const urlToken = new URLSearchParams(location.search).get("token");
+const storedToken = sessionStorage.getItem("dh_token");
+const token = urlToken || storedToken;
+
+// Persist token only if it came from URL
+if (urlToken) {
+  sessionStorage.setItem("dh_token", urlToken);
 }
 
+// 🚫 DO NOT redirect before validation
 
-// Block access without token
-if (!token) {
-  window.location.href = "/index.html";
-}
-
-// Validate token
 fetch(API_URL + "?action=validate&token=" + encodeURIComponent(token))
   .then(r => r.json())
   .then(d => {
     if (!d.valid) {
       sessionStorage.removeItem("dh_token");
-      window.location.href = "/index.html";
-    } else {
-      // show page only AFTER validation
-      document.body.style.visibility = "visible";
-      window.history.replaceState({}, document.title, "./");
+      window.location.replace("/index.html");
+      return;
     }
+
+    // ✅ Authorized
+    document.body.style.visibility = "visible";
+
+    // Remove token from URL safely
+    window.history.replaceState(
+      {},
+      document.title,
+      location.pathname
+    );
   })
   .catch(() => {
     sessionStorage.removeItem("dh_token");
-    window.location.href = "/index.html";
+    window.location.replace("/index.html");
   });
 
+/* ===== LOGOUT ===== */
 
-
-
-// Logout handler (invalidate token)
 const logoutBtn = document.getElementById("logoutBtn");
 const sessionText = document.getElementById("sessionText");
 
@@ -493,22 +496,17 @@ logoutBtn.addEventListener("click", () => {
   logoutBtn.classList.add("loading");
   logoutBtn.textContent = "Logging out…";
   logoutBtn.disabled = true;
-
   sessionText.textContent = "Ending secure session…";
+
+  sessionStorage.removeItem("dh_token");
 
   fetch(API_URL + "?action=logout&token=" + encodeURIComponent(token))
     .finally(() => {
-      // 🔥 CRITICAL FIX
-      sessionStorage.removeItem("dh_token");
-      token = null;
-
-      setTimeout(() => {
-        window.location.href = "/index.html";
-      }, 400);
+      window.location.replace("/index.html");
     });
 });
-
 </script>
+
 
 </body>
 </html>
