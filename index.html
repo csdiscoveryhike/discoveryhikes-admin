@@ -369,11 +369,14 @@ function showStatus(message, type = "info") {
 const API_URL = "https://script.google.com/macros/s/AKfycbyjZj5lamp08aFTgoaVooXJVuBeFc1GjJH_poeA2EqZNfZlkg-3x99fZYbfvNKQgSps/exec";
 
 function login() {
+  const button = document.querySelector("#loginForm button");
+
+  if (button.classList.contains("loading")) return;
+
   const userid = document.getElementById("userid").value
-  .trim()
-  .toLowerCase();
+    .trim()
+    .toLowerCase();
   const password = document.getElementById("password").value;
-  const button = document.querySelector("button");
 
   if (!userid || !password) {
     showStatus("⚠️ Please enter User ID and Password", "info");
@@ -393,7 +396,7 @@ function login() {
     .then(r => r.json())
     .then(d => {
       if (d.success) {
-        showStatus("✅ Access granted", "success", 1200);
+        showStatus("✅ Access granted", "success");
         setTimeout(() => {
           window.location.href = "/admin.html?token=" + d.token;
         }, 800);
@@ -402,23 +405,22 @@ function login() {
       }
     })
     .catch(() => {
-showStatus("❌ Invalid credentials", "error");
+      showStatus("❌ Invalid credentials", "error");
+      document.getElementById("password").value = "";
+      document.getElementById("password").focus();
 
-  const card = document.querySelector(".card");
+      const card = document.querySelector(".card");
+      card.classList.add("shake");
 
-  card.classList.add("shake");
+      setTimeout(() => {
+        card.classList.remove("shake");
+      }, 450);
 
-  setTimeout(() => {
-    card.classList.remove("shake");
-  }, 450);
-
-  button.classList.remove("loading");
-  button.textContent = "Continue";
-});
-
-
-
+      button.classList.remove("loading");
+      button.textContent = "Continue";
+    });
 }
+
 
 document.getElementById("loginForm").addEventListener("submit", function (e) {
   e.preventDefault(); // stop page reload
@@ -428,5 +430,6 @@ document.getElementById("loginForm").addEventListener("submit", function (e) {
 </script>
 </body>
 </html>
+
 
 
