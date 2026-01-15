@@ -431,6 +431,7 @@ body.dark .restricted {
 
 </div>
 
+
 <!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -439,7 +440,7 @@ body.dark .restricted {
 const SUPABASE_URL = "https://cilykokjiyxcdzrghceh.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpbHlrb2tqaXl4Y2R6cmdoY2VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0ODEyNjEsImV4cCI6MjA4NDA1NzI2MX0.hMGyLYPWUd3urT6jvbL-Vfp57zDi69t2rAe8hInMVRU";
 
-const supabase = supabase.createClient(
+const supabaseClient = supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
@@ -463,18 +464,18 @@ function toggleDark() {
 
 /* ================= AUTH GUARD ================= */
 (async () => {
-  const { data } = await supabase.auth.getSession();
+  const { data } = await supabaseClient.auth.getSession();
 
   if (!data.session) {
     window.location.replace("/index.html");
     return;
   }
 
-  // ✅ Authorized
   document.body.style.visibility = "visible";
 })();
+
 /* 🔐 HANDLE SESSION EXPIRY / LOGOUT IN OTHER TAB */
-supabase.auth.onAuthStateChange((event) => {
+supabaseClient.auth.onAuthStateChange((event) => {
   if (event === "SIGNED_OUT") {
     window.location.replace("/index.html");
   }
@@ -490,7 +491,7 @@ logoutBtn.addEventListener("click", async () => {
   logoutBtn.disabled = true;
   sessionText.textContent = "Ending secure session…";
 
-  await supabase.auth.signOut();
+  await supabaseClient.auth.signOut();
   window.location.replace("/index.html");
 });
 </script>

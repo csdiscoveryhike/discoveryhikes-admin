@@ -352,13 +352,13 @@ body.dark .status.info {
 const SUPABASE_URL = "https://cilykokjiyxcdzrghceh.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpbHlrb2tqaXl4Y2R6cmdoY2VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0ODEyNjEsImV4cCI6MjA4NDA1NzI2MX0.hMGyLYPWUd3urT6jvbL-Vfp57zDi69t2rAe8hInMVRU";
 
-const supabase = supabase.createClient(
+const supabaseClient = supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
 
 /* 🔐 AUTO REDIRECT IF SESSION EXISTS */
-supabase.auth.getSession().then(({ data }) => {
+supabaseClient.auth.getSession().then(({ data }) => {
   if (data.session) {
     window.location.replace("/admin.html");
   }
@@ -397,7 +397,7 @@ async function login() {
   button.classList.add("loading");
   button.textContent = "Signing in…";
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { error } = await supabaseClient.auth.signInWithPassword({
     email,
     password
   });
@@ -426,6 +426,7 @@ document.getElementById("loginForm").addEventListener("submit", e => {
   login();
 });
 </script>
+
 
 </body>
 </html>
