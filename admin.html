@@ -9,14 +9,18 @@
 <meta name="robots" content="noindex, nofollow">
 <meta http-equiv="Cache-Control" content="no-store">
 <meta http-equiv="Content-Security-Policy"
-      content="
-        default-src 'self';
-        img-src 'self' https://i.imgur.com;
-        script-src 'self' 'unsafe-inline' https://script.google.com;
-        connect-src https://script.google.com https://script.googleusercontent.com;
-        frame-src https://forms.gle https://t.me;
-        style-src 'self' 'unsafe-inline';
-      ">
+content="
+  default-src 'self';
+  img-src 'self' https://i.imgur.com;
+  script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
+  connect-src
+    https://*.supabase.co
+    https://script.google.com
+    https://script.googleusercontent.com;
+  frame-src https://forms.gle https://t.me;
+  style-src 'self' 'unsafe-inline';
+">
+
 
 
 <style>
@@ -427,17 +431,27 @@ body.dark .restricted {
 
 </div>
 
+<!-- SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-/* ===== Prevent BFCache reopen ===== */
+/* ================= SUPABASE CONFIG ================= */
+const SUPABASE_URL = "https://cilykokjiyxcdzrghceh.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpbHlrb2tqaXl4Y2R6cmdoY2VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0ODEyNjEsImV4cCI6MjA4NDA1NzI2MX0.hMGyLYPWUd3urT6jvbL-Vfp57zDi69t2rAe8hInMVRU";
+
+const supabase = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+/* ================= PREVENT BF CACHE ================= */
 window.addEventListener("pageshow", e => {
   if (e.persisted) location.reload();
 });
 
-/* ===== Persist Dark Mode ===== */
+/* ================= DARK MODE ================= */
 const storedTheme = localStorage.getItem("dh-theme");
-if (storedTheme === "dark") {
-  document.body.classList.add("dark");
-}
+if (storedTheme === "dark") document.body.classList.add("dark");
 
 function toggleDark() {
   document.body.classList.toggle("dark");
@@ -447,64 +461,37 @@ function toggleDark() {
   );
 }
 
-/* ===== AUTH + SESSION LOGIC ===== */
+/* ================= AUTH GUARD ================= */
+(async () => {
+  const { data } = await supabase.auth.getSession();
 
-const API_URL =
-  "https://script.google.com/macros/s/AKfycbyjZj5lamp08aFTgoaVooXJVuBeFc1GjJH_poeA2EqZNfZlkg-3x99fZYbfvNKQgSps/exec";
-
-// Read token safely (URL first, then session)
-const urlToken = new URLSearchParams(location.search).get("token");
-const storedToken = sessionStorage.getItem("dh_token");
-const token = urlToken || storedToken;
-
-// Persist token only if it came from URL
-if (urlToken) {
-  sessionStorage.setItem("dh_token", urlToken);
-}
-
-// 🚫 DO NOT redirect before validation
-
-fetch(API_URL + "?action=validate&token=" + encodeURIComponent(token))
-  .then(r => r.json())
-  .then(d => {
-    if (!d.valid) {
-      sessionStorage.removeItem("dh_token");
-      window.location.replace("/index.html");
-      return;
-    }
-
-    // ✅ Authorized
-    document.body.style.visibility = "visible";
-
-    // Remove token from URL safely
-    window.history.replaceState(
-      {},
-      document.title,
-      location.pathname
-    );
-  })
-  .catch(() => {
-    sessionStorage.removeItem("dh_token");
+  if (!data.session) {
     window.location.replace("/index.html");
-  });
+    return;
+  }
 
-/* ===== LOGOUT ===== */
+  // ✅ Authorized
+  document.body.style.visibility = "visible";
+})();
+/* 🔐 HANDLE SESSION EXPIRY / LOGOUT IN OTHER TAB */
+supabase.auth.onAuthStateChange((event) => {
+  if (event === "SIGNED_OUT") {
+    window.location.replace("/index.html");
+  }
+});
 
+/* ================= LOGOUT ================= */
 const logoutBtn = document.getElementById("logoutBtn");
 const sessionText = document.getElementById("sessionText");
 
-logoutBtn.addEventListener("click", () => {
+logoutBtn.addEventListener("click", async () => {
   logoutBtn.classList.add("loading");
   logoutBtn.textContent = "Logging out…";
   logoutBtn.disabled = true;
   sessionText.textContent = "Ending secure session…";
 
-  sessionStorage.removeItem("dh_token");
-
-  fetch(API_URL + "?action=logout&token=" + encodeURIComponent(token))
-    .finally(() => {
-      window.location.replace("/index.html");
-    });
+  await supabase.auth.signOut();
+  window.location.replace("/index.html");
 });
 </script>
 
