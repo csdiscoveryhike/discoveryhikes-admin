@@ -467,7 +467,7 @@ function toggleDark() {
   const { data } = await supabaseClient.auth.getSession();
 
   if (!data.session) {
-    window.location.replace("/admin/index.html");
+    window.location.replace("/index.html");
     return;
   }
 
@@ -477,7 +477,7 @@ function toggleDark() {
 /* 🔐 HANDLE SESSION EXPIRY / LOGOUT IN OTHER TAB */
 supabaseClient.auth.onAuthStateChange((event) => {
   if (event === "SIGNED_OUT") {
-    window.location.replace("/admin/index.html");
+    window.location.replace("/index.html");
   }
 });
 
@@ -492,13 +492,14 @@ logoutBtn.addEventListener("click", async () => {
   sessionText.textContent = "Ending secure session…";
 
   await supabaseClient.auth.signOut();
-  window.location.replace("/admin/index.html");
+  window.location.replace("/index.html");
 });
 </script>
 
 
 </body>
 </html>
+
 
 
 
