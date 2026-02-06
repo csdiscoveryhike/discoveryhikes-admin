@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Discovery Hike – Batch & Payment Dashboard</title>
+   <link rel="icon" href="favicon.ico" type="image/x-icon">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Chart.js (added, nothing removed) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+/* =========================================================
+   DESIGN TOKENS (LIGHT / DARK)
+========================================================= */
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --surface-soft: #f8fafc;
+  --text: #1f2937;
+  --text-muted: #6b7280;
+  --border: rgba(229,231,235,0.7);
+
+  --brand-primary: #0f2a44;
+  --brand-secondary: #1e4f91;
+
+  --shadow-sm: 0 4px 10px rgba(0,0,0,0.06);
+  --shadow-md: 0 6px 14px rgba(0,0,0,0.08);
+}
+
+/* DARK MODE (ADMIN PANEL PARITY) */
+body.dark {
+  --bg: #0b1220;
+  --surface: #0f172a;
+  --surface-soft: #111c33;
+  --text: #e5e7eb;
+  --text-muted: #94a3b8;
+  --border: rgba(148,163,184,0.18);
+
+  --shadow-sm: 0 4px 10px rgba(0,0,0,0.4);
+  --shadow-md: 0 6px 14px rgba(0,0,0,0.5);
+}
+
+/* =========================================================
+   BASE
+========================================================= */
+body {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  background: var(--bg);
+  margin: 0;
+  padding: 16px;
+  color: var(--text);
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+.container {
+  max-width: 1300px;
+  margin: auto;
+}
+
+h1 { margin-bottom: 4px; }
+.note {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+/* =========================================================
+   HEADER (MATCH ADMIN PANEL)
+========================================================= */
+.dh-header {
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+  border-radius: 14px;
+  padding: 16px 20px;
+  color: #ffffff;
+  margin-bottom: 18px;
+  box-shadow: var(--shadow-md);
+}
+
+.dh-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.dh-logo { height: 42px; }
+
+.dh-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.dh-subtitle {
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+/* =========================================================
+   FILTER BAR
+========================================================= */
+.filters {
+  background: var(--surface);
+  padding: 12px;
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: 200px 1fr auto;
+  gap: 10px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.filters select,
+.filters input,
+.filters button {
+  padding: 9px 10px;
+  font-size: 14px;
+  background: var(--surface-soft);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+/* =========================================================
+   TABLE (CALM, INTERNAL TOOL)
+========================================================= */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 20px;
+  table-layout: fixed; /* prevents jumping */
+}
+
+th, td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13.5px;
+  vertical-align: middle;
+}
+
+th {
+  background: var(--surface-soft);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: normal;        /* allow wrap */
+  line-height: 1.3;
+  word-break: keep-all;
+  max-width: 120px;
+}
+/* Row hover – subtle like admin panel */
+tbody tr:hover {
+background: rgba(30,79,145,0.05);
+  cursor: pointer;
+}
+
+/* =========================================================
+   COLUMN ALIGNMENT (BATCH TABLE)
+========================================================= */
+th:nth-child(1), td:nth-child(1) { text-align: left; font-weight: 600; }
+th:nth-child(2), td:nth-child(2) {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+th:nth-child(3), td:nth-child(3),
+th:nth-child(4), td:nth-child(4) {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+th:nth-child(5), td:nth-child(5),
+th:nth-child(6), td:nth-child(6),
+th:nth-child(7), td:nth-child(7) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* =========================================================
+   STATUS BADGES (STABLE)
+========================================================= */
+.status-upcoming,
+.status-past {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 84px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-upcoming {
+  background: rgba(4,120,87,0.14);
+  color: #10b981;
+}
+
+.status-past {
+  background: rgba(148,163,184,0.18);
+  color: var(--text-muted);
+}
+
+/* =========================================================
+   PAYMENT STATES
+========================================================= */
+.pay-ok   { color: #10b981; font-weight: 600; }
+.pay-due  { color: #f59e0b; font-weight: 600; }
+.pay-warn { color: #ef4444; font-weight: 700; }
+
+/* =========================================================
+   HIGH PAX (CONTROLLED)
+========================================================= */
+.high-pax {
+  background: rgba(251,191,36,0.14);
+}
+
+/* =========================================================
+   BOOKINGS PANEL (DETAIL VIEW)
+========================================================= */
+.bookings-panel {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 20px;
+  border-left: 4px solid var(--brand-secondary);
+}
+
+.bookings-panel table {
+  table-layout: fixed;
+}
+
+/* ================================
+   DRAWER TABLE: SAFE LAYOUT
+================================ */
+.bookings-panel th {
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.bookings-panel td {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  font-size: 13px;
+}
+
+.bookings-panel td:nth-last-child(-n+4) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* =========================================================
+   SECTIONS, CARDS, CHARTS
+========================================================= */
+.section-title {
+  margin: 32px 0 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.card,
+.chart-card {
+  background: var(--surface);
+  padding: 14px;
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.card strong {
+  font-size: 22px;
+  display: block;
+}
+
+.card span {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+}
+.chart-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.chart-desc {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+canvas { max-height: 320px; }
+
+/* =========================================================
+   BUTTONS (ADMIN PARITY)
+========================================================= */
+button {
+  background: linear-gradient(135deg, var(--brand-secondary), var(--brand-primary));
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 14px;
+}
+
+button:hover { opacity: 0.9; }
+
+/* =========================================================
+   MOBILE
+========================================================= */
+@media (max-width: 800px) {
+
+  /* ONLY main batch table becomes card-style */
+  #batchTable thead { display: none; }
+  #batchTable tr { display: block; }
+    #batchTable tr {
+    background: var(--surface);
+    border-radius: 18px;
+    margin-bottom: 16px;
+    padding: 4px 0;
+    box-shadow: var(--shadow-sm);
+    border-left: 4px solid var(--brand-secondary);
+    overflow: hidden;
+  }
+
+  #batchTable tr.high-pax {
+    border-left-color: #f59e0b;
+  }
+
+
+  @media (max-width: 800px) {
+
+  #batchTable td[data-label="Turnover"],
+  #batchTable td[data-label="Advance"],
+  #batchTable td[data-label="Remaining"] {
+    display: none;
+  }
+}
+@media (max-width: 800px) {
+
+  #batchTable td {
+    padding: 6px 14px;
+  }
+
+  #batchTable td[data-label="Trek"] {
+    font-size: 16px;
+    font-weight: 800;
+    padding-top: 12px;
+  }
+
+  #batchTable td[data-label="Date"] {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  #batchTable td[data-label="Bookings"],
+  #batchTable td[data-label="Pax"] {
+    font-size: 14px;
+    font-weight: 600;
+  }
+}
+#batchTable tr::after {
+    content: "Tap to view batch →";
+    display: block;
+    padding: 10px 14px 14px;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: right;
+  }
+
+  #batchTable tr:active {
+    transform: scale(0.985);
+  }
+  #batchTable td {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 10px;
+  }
+  #batchTable td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  /* Drawer tables stay NORMAL */
+  .drawer table thead {
+    display: table-header-group;
+  }
+  .drawer table tr {
+    display: table-row;
+  }
+  .drawer table td {
+    display: table-cell;
+  }
+  /* ================================
+   MOBILE: FIX STATUS ALIGNMENT
+================================ */
+#batchTable td.status-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#batchTable td.status-cell::before {
+  margin-right: auto; /* pushes pill to the right */
+}
+
+
+}
+
+/* ================================
+   ROW SELECTION & DRAWER
+================================ */
+
+tbody tr.selected {
+  background: rgba(30,79,145,0.12);
+}
+
+.drawer-row td {
+  padding: 0;
+  border-bottom: none;
+}
+
+.drawer {
+  background: var(--surface-soft);
+  border-top: 1px solid var(--border);
+  border-left: 4px solid var(--brand-secondary);
+  padding: 14px;
+  animation: slideDown 0.25s ease;
+}
+@media (max-width: 800px) {
+
+  .filters {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 14px;
+  }
+
+  .filters select {
+    font-weight: 600;
+  }
+
+  .filters input {
+    font-size: 15px;
+  }
+
+  .filters button {
+    width: 100%;
+    border-radius: 14px;
+    font-weight: 700;
+    padding: 12px;
+  }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Drawer table refinement */
+.drawer table {
+  margin-top: 10px;
+  box-shadow: none;
+}
+
+.drawer h4 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+/* Status cell arrow (desktop only) */
+td.status-cell {
+  position: relative;
+  padding-right: 28px;
+}
+
+td.status-cell::after {
+  content: "▸";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+tr.selected td.status-cell::after {
+  content: "▾";
+}
+
+.drawer-row td {
+  background: transparent;
+}
+
+.drawer {
+  border-radius: 0 0 14px 14px;
+}
+/* ================================
+   SAFE WRAPPING: TIMESTAMP & EMAIL
+================================ */
+
+/* Timestamp: wrap cleanly, keep readable */
+/* ================================
+   SAFE WRAPPING: TIMESTAMP & EMAIL
+================================ */
+
+/* ================================
+   SAFE WRAPPING: TIMESTAMP & EMAIL
+   (FINAL, OVERRIDES ELLIPSIS)
+================================ */
+
+/* Timestamp */
+.bookings-panel .drawer td.cell-timestamp {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-break: keep-all;
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Client Email */
+.bookings-panel .drawer td.cell-email {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.35;
+}
+@media (min-width: 801px) {
+  .drawer table td {
+    white-space: normal;
+    vertical-align: top;
+  }
+
+  .drawer td.cell-email {
+    max-width: 240px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .drawer td.cell-timestamp {
+    max-width: 140px;
+    word-break: keep-all;
+  }
+}
+@media (min-width: 801px) {
+  .drawer {
+    overflow-x: auto;
+  }
+
+  .drawer table {
+    min-width: 1100px;
+    table-layout: auto;
+  }
+
+  .drawer td.cell-email,
+  .drawer th.cell-email {
+    min-width: 340px;
+    max-width: 360px;
+    white-space: nowrap;
+  }
+}
+/* ================================
+   DRAWER: FIX ADVANCE COLUMN BLANKING
+================================ */
+@media (min-width: 801px) {
+  .drawer table th:nth-child(8),
+  .drawer table td:nth-child(8) {
+    min-width: 120px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+}
+@media (min-width: 801px) {
+  .drawer table th:nth-child(7),
+  .drawer table td:nth-child(7) {
+    min-width: 90px;
+    text-align: center;
+  }
+}
+
+/* ================================
+   DESKTOP: CENTER ALIGN ADVANCE & REMAINING
+================================ */
+@media (min-width: 801px) {
+  .drawer table td:nth-last-child(2),
+  .drawer table td:nth-last-child(1) {
+    text-align: center !important;
+  }
+}
+
+/* ================================
+   DESKTOP: STATUS CENTERED, ARROW RIGHT
+================================ */
+@media (min-width: 801px) {
+
+  #batchTable td.status-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* 👈 true centering */
+    position: relative;     /* keeps arrow positioning intact */
+  }
+
+  #batchTable td.status-cell::after {
+    right: 10px;            /* arrow stays right */
+  }
+}
+/* ================================
+   DESKTOP: TRUE CENTER MIDDLE STATUS
+================================ */
+@media (min-width: 801px) {
+
+  #batchTable td.status-cell {
+    display: flex;
+    align-items: center;      /* vertical center */
+    justify-content: center;  /* horizontal center */
+    position: relative;
+  }
+
+  #batchTable td.status-cell .status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+
+/* ================================
+   DESKTOP: FORCE TOP ALIGN FOR ALL DRAWER CELLS
+================================ */
+@media (min-width: 801px) {
+  .drawer table td {
+    vertical-align: top !important;
+  }
+}
+/* ================================
+   DRAWER: SHARING TYPE ALIGNMENT
+================================ */
+@media (min-width: 801px) {
+  .drawer td.cell-sharing {
+    text-align: center !important;
+    font-weight: 600;
+  }
+}
+/* ================================
+   DRAWER: SHARING TYPE ALIGNMENT
+================================ */
+@media (min-width: 801px) {
+
+  .drawer th.th-sharing {
+    text-align: center !important;
+  }
+
+  .drawer td.cell-sharing {
+    text-align: center !important;
+    font-weight: 600;
+  }
+}
+
+/* =========================================
+   MOBILE OVERLAY FLIP (NO DESKTOP IMPACT)
+========================================= */
+@media (max-width: 800px) {
+
+  .mobile-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-overlay.hidden {
+    display: none;
+  }
+
+  .mobile-flip {
+    width: 92%;
+    height: 55%;
+    max-height: 90%;
+    background: transparent;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.6s ease;
+  }
+
+  .mobile-flip.flipped {
+    transform: rotateY(180deg);
+  }
+
+  .mobile-face {
+    position: absolute;
+    inset: 0;
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 16px;
+    overflow-y: auto;
+    backface-visibility: hidden;
+  }
+
+  .mobile-back {
+    transform: rotateY(180deg);
+  }
+}
+@media (max-width: 800px) {
+
+  .mobile-front {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .mobile-front h3 {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+
+  .mobile-front p {
+    margin: 4px 0;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+}
+@media (max-width: 800px) {
+
+  .mobile-front .trek-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 14px;
+  }
+
+  .mobile-front .trek-stats div {
+    background: var(--surface-soft);
+    border-radius: 10px;
+    padding: 8px 10px;
+    text-align: center;
+    font-weight: 600;
+  }
+}
+
+/* =========================================
+   MOBILE CLIENT CARD – VISUAL UPGRADE
+========================================= */
+@media (max-width: 800px) {
+
+ .client-card {
+    display: grid;
+    grid-template-columns: 6px 1fr;
+    background: var(--surface);
+    border-radius: 16px;
+
+    /* ✅ let content decide height */
+    height: auto;
+
+    box-shadow:
+      0 6px 16px rgba(0,0,0,0.08),
+      0 2px 6px rgba(0,0,0,0.05);
+
+    overflow: hidden;
+    scroll-snap-align: center;
+  }
+
+
+
+  .client-strip {
+    background: linear-gradient(
+      180deg,
+      var(--brand-secondary),
+      var(--brand-primary)
+    );
+  }
+
+  .client-body {
+    padding: 16px 16px 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .client-fields {
+    display: grid;
+    gap: 10px;
+    font-size: 14px;
+  }
+
+  .client-fields .row {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    align-items: start;
+    gap: 6px;
+  }
+
+  .client-fields .row span {
+    color: var(--text-muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .client-fields .row strong {
+    font-weight: 600;
+    word-break: break-word;
+    line-height: 1.4;
+  }
+
+  .client-name {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+
+  .client-email {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    word-break: break-word;
+    margin-bottom: 8px;
+  }
+
+  .client-meta {
+    display: flex;
+    gap: 14px;
+    font-size: 12.5px;
+  }
+
+  .client-meta span {
+    font-weight: 600;
+  }
+}
+
+/* =========================================
+   MOBILE CLIENT SWIPE (CAROUSEL)
+========================================= */
+@media (max-width: 800px) {
+
+  .client-carousel {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 14px;
+    padding-bottom: 10px;
+  }
+
+  .client-carousel::-webkit-scrollbar {
+    display: none;
+  }
+
+  .client-carousel > .client-card {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+  }
+
+  .carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .carousel-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--border);
+  }
+
+  .carousel-dot.active {
+    background: var(--brand-secondary);
+  }
+}
+
+@media (max-width: 800px) {
+
+  .client-fields .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 6px 0;
+  }
+
+  .client-fields .row.small {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 800px) {
+
+  .client-fields .row:first-child strong {
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .client-fields .row:nth-child(2) strong {
+    color: var(--brand-secondary);
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 800px) {
+
+  /* Push client cards slightly down from Back button */
+  .mobile-back .client-carousel {
+    margin-top: 25px; /* 👈 gentle, controlled spacing */
+  }
+}
+
+@media (max-width: 800px) {
+
+  .advance-highlight {
+    margin: 14px auto 10px;
+    padding: 10px 16px;
+    border-radius: 14px;
+
+    background: linear-gradient(
+      135deg,
+      rgba(16,185,129,0.18),
+      rgba(16,185,129,0.10)
+    );
+
+    text-align: center;
+    width: fit-content;
+  }
+
+  .advance-highlight span {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #059669;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+
+  .advance-highlight strong {
+    font-size: 18px;
+    font-weight: 800;
+    color: #047857;
+  }
+}
+/* =========================================
+   MOBILE EXPORT CSV BUTTON
+========================================= */
+.mobile-export {
+  margin: 12px 0 20px;
+  text-align: center;
+}
+
+@media (max-width: 800px) {
+
+  /* Hide desktop export */
+  .export-desktop {
+    display: none !important;
+  }
+
+  /* Mobile export hidden by default */
+  .mobile-export.hidden {
+    display: none;
+  }
+
+  .mobile-export button {
+    width: 100%;
+    padding: 14px;
+    border-radius: 14px;
+    font-weight: 700;
+  }
+}
+/* =========================================
+   DESKTOP: HIDE MOBILE EXPORT ALWAYS
+========================================= */
+@media (min-width: 801px) {
+  .mobile-export {
+    display: none !important;
+  }
+}
+
+/* =========================================
+   MOBILE: REMOVE STATUS ARROW INDICATOR
+========================================= */
+@media (max-width: 800px) {
+  td.status-cell::after {
+    content: none !important;
+  }
+}
+
+</style>
+
+
+</head>
+
+<body>
+<div class="container">
+
+  <!-- PREMIUM HEADER -->
+<div class="dh-header">
+  <div class="dh-header-left">
+    <!-- keep your logo here -->
+    <img src="https://i.imgur.com/40sl7Sv.png" alt="Discovery Hike" class="dh-logo">
+    <div>
+      <div class="dh-title">Discovery Hike</div>
+      <div class="dh-subtitle">Operations · Batch · Payments · Insights</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== YOUR ORIGINAL HTML (UNCHANGED) ===== -->
+<div class="filters">
+  <select id="dateFilter">
+    <option value="upcoming">Upcoming Batches (from tomorrow)</option>
+    <option value="past">Past Batches (incl. today)</option>
+    <option value="all">All Batches</option>
+  </select>
+  <input type="text" id="searchInput" placeholder="Search with any datafield..." />
+  <button class="export-desktop" onclick="exportCSV()">Export CSV</button>
+
+</div>
+
+<table id="batchTable">
+<thead>
+<tr>
+  <th>Trek</th>
+  <th>Date</th>
+  <th>Bookings</th>
+  <th>Pax</th>
+  <th>Turnover</th>
+  <th>Advance</th>
+  <th>Remaining</th>
+  <th>Status</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+  <!-- ✅ MOBILE EXPORT (hidden by default) -->
+<div id="mobileExportWrap" class="mobile-export hidden">
+  <button onclick="exportCSV()">Export CSV</button>
+</div>
+<div class="bookings-panel" id="bookingsPanel" style="display:none;">
+  <h3 id="bookingsTitle"></h3>
+  <table id="bookingTable">
+    <thead></thead>
+    <tbody></tbody>
+  </table>
+
+
+</div>
+
+<!-- ===== HISTORICAL INDEXES (NEW) ===== -->
+<div class="section-title">📊 Historical Indexes (All-time)</div>
+<div class="grid">
+  <div class="card"><strong id="idxBatches">0</strong><span>Total Batches</span></div>
+  <div class="card"><strong id="idxPax">0</strong><span>Total Pax Served</span></div>
+  <div class="card"><strong id="idxTurn">₹0</strong><span>Total Turnover</span></div>
+  <div class="card"><strong id="idxAdv">₹0</strong><span>Total Advance</span></div>
+  <div class="card"><strong id="idxOut">₹0</strong><span>Total Outstanding</span></div>
+</div>
+
+<div class="section-title">📌 Historical Highlights</div>
+<div class="grid">
+  <div class="card"><strong id="idxTopTrek">–</strong><span>Busiest Trek</span></div>
+  <div class="card"><strong id="idxBusyDay">–</strong><span>Busiest Day</span></div>
+  <div class="card"><strong id="idxBigBatch">–</strong><span>Largest Batch</span></div>
+</div>
+
+<!-- ===== TRENDS ===== -->
+<div class="section-title">📈 Trends & Insights (All-time)</div>
+<div class="chart-grid">
+
+  <div class="chart-card">
+    <div class="chart-title">Monthly Pax Trend</div>
+    <div class="chart-desc">
+      Shows how many participants joined across all batches month-by-month.
+      Useful to understand seasonal demand and growth.
+    </div>
+    <canvas id="paxTrend"></canvas>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">Monthly Turnover Trend</div>
+    <div class="chart-desc">
+      Total revenue generated per month from all treks.
+      Helps track business performance over time.
+    </div>
+    <canvas id="turnTrend"></canvas>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">Advance vs Remaining Payments</div>
+    <div class="chart-desc">
+      Comparison of money already collected versus outstanding balance,
+      stacked month-wise for cash-flow clarity.
+    </div>
+    <canvas id="advRemTrend"></canvas>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">Top Treks by Participation</div>
+    <div class="chart-desc">
+      Highlights treks that attracted the highest number of participants
+      across all time.
+    </div>
+    <canvas id="topTreks"></canvas>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">Batch Size Distribution</div>
+    <div class="chart-desc">
+      Number of batches grouped by pax size. Useful to understand
+      operational load and planning patterns.
+    </div>
+    <canvas id="batchLoad"></canvas>
+  </div>
+
+</div>
+
+
+</div>
+
+<script>
+/* ===== YOUR ORIGINAL SCRIPT (UNCHANGED, ONLY EXTENDED) ===== */
+const DATA_URL = 'https://script.google.com/macros/s/AKfycbz2VgvO8CFo6b-1f02dnnW5s2DDZfv9Ai0U5oiNg6laOStze00NF3TcL0UnOQP6pCsucQ/exec';
+const TREK=3, DATE=4, DEAL=5, PAX=6, ADV=7;
+const today = new Date(); today.setHours(0,0,0,0);
+
+const norm = s => (s||'').toLowerCase().trim();
+const money = n => '₹'+n.toLocaleString('en-IN');
+function formatDate(d){
+  const x = new Date(d);
+  if (isNaN(x)) return d || '';
+  return String(x.getDate()).padStart(2,'0') + '-' +
+         String(x.getMonth()+1).padStart(2,'0') + '-' +
+         x.getFullYear();
+}
+function formatDateTime(d) {
+  const x = new Date(d);
+  if (isNaN(x)) return d || '';
+  return (
+    String(x.getDate()).padStart(2,'0') + '-' +
+    String(x.getMonth()+1).padStart(2,'0') + '-' +
+    x.getFullYear() + ', ' +
+    String(x.getHours()).padStart(2,'0') + ':' +
+    String(x.getMinutes()).padStart(2,'0')
+  );
+}
+
+let raw=[], headers=[], allBatches=[];
+let COL = {};
+
+fetch(DATA_URL).then(r=>r.json()).then(d=>{
+  headers = d[0];
+  raw = d.slice(1);
+
+  // ✅ RESOLVE COLUMN INDEXES ONCE (CRITICAL)
+  COL = {
+    name: colIndex(/name|customer|client/i),
+    email: colIndex(/email|ईमेल/i),
+    phone: colIndex(/phone|mobile/i),
+    pax: colIndex(/pax|people|participants/i),
+    deal: colIndex(/deal|price|amount/i),
+    advance: colIndex(/advance|paid/i),
+    date: colIndex(/टाइमस्टैम्प|timestamp|booked/i)
+  };
+
+  console.table(headers);
+  console.table(COL);
+
+  allBatches = buildBatches();
+  render();
+  renderHistorical(allBatches);
+  renderCharts(allBatches);
+});
+
+function colIndex(regex) {
+  return headers.findIndex(h => regex.test(h.toLowerCase()));
+}
+function cell(r, regex) {
+  const i = colIndex(regex);
+  return i >= 0 ? r[i] : '';
+}
+function rowMatchesSearch(row, search) {
+  return row
+    .map(v => String(v ?? '').toLowerCase())
+    .join(' ')
+    .includes(search);
+}
+
+function buildBatches(){
+  const m={};
+  raw.forEach(r=>{
+    const key=norm(r[TREK])+'|'+r[DATE];
+    if(!m[key]) m[key]={ trek:r[TREK], date:new Date(r[DATE]), rows:[], pax:0, turn:0, adv:0 };
+    const pax=Number(r[PAX])||0;
+    const deal=Number(r[DEAL])||0;
+    const adv=Number(r[ADV])||0;
+    m[key].rows.push(r);
+    m[key].pax+=pax;
+    m[key].turn+=deal*pax;
+    m[key].adv+=adv;
+  });
+  return Object.values(m);
+}
+
+/* ===== ORIGINAL render(), showBookings(), exportCSV() UNCHANGED ===== */
+function render() {
+  const f = dateFilter.value;
+  const s = searchInput.value.toLowerCase();
+
+  const tb = document.querySelector('#batchTable tbody');
+  tb.innerHTML = '';
+
+  let drawerAutoOpened = false;
+
+  allBatches
+    .filter(b => {
+      const d = Math.floor((b.date - today) / 86400000);
+
+      // 1️⃣ Date filter (authoritative)
+      if (f === 'upcoming' && d <= 0) return false;
+      if (f === 'past' && d > 0) return false;
+
+      // Reset search metadata
+      b.__matchedClients = [];
+
+      if (!s) return true;
+
+      // 2️⃣ Batch-level search
+      const batchHaystack = [
+        b.trek,
+        b.date.toLocaleDateString('en-GB'),
+        b.rows.length,
+        b.pax,
+        b.turn,
+        b.adv,
+        b.turn - b.adv,
+        b.date > today ? 'upcoming' : 'past'
+      ].join(' ').toLowerCase();
+
+      if (batchHaystack.includes(s)) return true;
+
+      // 3️⃣ Client-level search (ANY FIELD)
+      b.rows.forEach(r => {
+        if (rowMatchesSearch(r, s)) {
+          b.__matchedClients.push(r);
+        }
+      });
+
+      return b.__matchedClients.length > 0;
+    })
+    .sort((a, b) => a.date - b.date)
+    .forEach(b => {
+      const tr = document.createElement('tr');
+      if (b.pax >= 20) tr.classList.add('high-pax');
+
+      tr.innerHTML = `
+        <td data-label="Trek">${b.trek}</td>
+        <td data-label="Date">${b.date.toLocaleDateString('en-GB')}</td>
+        <td data-label="Bookings">${b.rows.length}</td>
+        <td data-label="Pax">${b.pax}</td>
+        <td data-label="Turnover">${money(b.turn)}</td>
+        <td data-label="Advance">${money(b.adv)}</td>
+        <td data-label="Remaining">${money(b.turn - b.adv)}</td>
+        <td data-label="Status" class="status-cell">
+  <span class="status-pill ${b.date > today ? 'status-upcoming' : 'status-past'}">
+    ${b.date > today ? 'Upcoming' : 'Past'}
+  </span>
+</td>
+
+      `;
+
+      tr.onclick = () => {
+        if (window.innerWidth <= 800) {
+          openMobileCard(b);
+        } else {
+          showBookings(b, tr, b.__matchedClients);
+        }
+      };
+
+      tb.appendChild(tr);
+
+      // 4️⃣ Auto-open drawer ONLY when client match exists
+      if (s && b.__matchedClients.length && !drawerAutoOpened && window.innerWidth > 800) {
+        drawerAutoOpened = true;
+        setTimeout(() => showBookings(b, tr, b.__matchedClients), 0);
+      }
+    });
+    // ✅ MOBILE EXPORT VISIBILITY
+// ✅ MOBILE EXPORT VISIBILITY
+const mobileExport = document.getElementById('mobileExportWrap');
+
+if (mobileExport && window.innerWidth <= 800) {
+  mobileExport.classList.toggle('hidden', tb.children.length === 0);
+}
+
+
+}
+
+let openDrawer = null;
+
+function showBookings(b, rowEl, filteredRows = null) {
+
+  // Toggle off if clicking the same row
+  if (openDrawer && openDrawer.row === rowEl) {
+    openDrawer.drawer.remove();
+    openDrawer.row.classList.remove('selected');
+    openDrawer = null;
+    return;
+  }
+
+  // Close any existing drawer
+  if (openDrawer) {
+    openDrawer.drawer.remove();
+    openDrawer.row.classList.remove('selected');
+    openDrawer = null;
+  }
+
+  rowEl.classList.add('selected');
+
+  const drawerRow = document.createElement('tr');
+  drawerRow.className = 'drawer-row';
+
+  const drawerCell = document.createElement('td');
+  drawerCell.colSpan = 8;
+
+  // ✅ SAFE HEADER FILTER (only removes if actually present)
+  const drawerHeaders = headers
+    .map((h, i) => ({ h, i }))
+    .filter(x => !/advance/i.test(x.h));
+
+  drawerCell.innerHTML = `
+    <div class="drawer">
+      <h4>${b.trek} – ${b.date.toLocaleDateString('en-GB')}</h4>
+
+      <table>
+        <thead>
+  <tr>
+    ${
+      headers
+  .filter((_, i) => i !== COL.date)
+  .map(h => {
+    // ✅ Center align Sharing Type header
+    if (h.toLowerCase().includes('sharing')) {
+      return `<th class="th-sharing">${h}</th>`;
+    }
+
+    return `<th>${h === headers[DATE] ? 'Trek Date' : h}</th>`;
+  })
+  .join('')
+
+    }
+    <th>Cnf✅ Email Sent On</th>
+    <th>Total</th>
+    <th>Remaining</th>
+  </tr>
+</thead>
+
+
+        <tbody>
+  ${(filteredRows && filteredRows.length ? filteredRows : b.rows).map(r => {
+
+    const total = (+r[DEAL] || 0) * (+r[PAX] || 0);
+    const rem   = total - (+r[ADV] || 0);
+
+    return `
+      <tr>
+       ${
+  headers
+  .map((h, originalIndex) => ({ h, originalIndex }))
+  .filter(x => x.originalIndex !== COL.date)
+  .map(({ h, originalIndex }) => {
+    const c = r[originalIndex] ?? '';
+
+    // Trek Date → ONLY trek date
+    if (originalIndex === DATE) {
+      return `<td class="cell-timestamp">${formatDate(c)}</td>`;
+    }
+
+    // Email formatting
+    if (h.toLowerCase().includes('email')) {
+      return `<td class="cell-email">${c}</td>`;
+    }
+
+    // ✅ FIX: Sharing Type → center aligned
+    if (h.toLowerCase().includes('sharing')) {
+      return `<td class="cell-sharing">${c}</td>`;
+    }
+
+    return `<td>${c}</td>`;
+  })
+  .join('')
+
+}
+
+<td class="cell-timestamp">
+  ${COL.date >= 0 ? formatDateTime(r[COL.date]) : '—'}
+</td>
+
+
+
+        <td>${money(total)}</td>
+        <td>${money(rem)}</td>
+      </tr>
+    `;
+  }).join('')}
+</tbody>
+
+      </table>
+    </div>
+  `;
+
+  drawerRow.appendChild(drawerCell);
+  rowEl.after(drawerRow);
+
+  openDrawer = { row: rowEl, drawer: drawerRow };
+}
+
+function exportCSV() {
+  const f = dateFilter.value;
+  const s = searchInput.value.toLowerCase();
+
+  // same filtering logic as render()
+  const filtered = allBatches.filter(b => {
+    const d = Math.floor((b.date - today) / 86400000);
+
+    if (f === 'upcoming' && d <= 0) return false;
+    if (f === 'past' && d > 0) return false;
+
+    
+    if (s) {
+  const batchHaystack = [
+    b.trek,
+    b.date.toLocaleDateString('en-GB'),
+    b.rows.length,
+    b.pax,
+    b.turn,
+    b.adv,
+    b.turn - b.adv,
+    b.date > today ? 'upcoming' : 'past'
+  ].join(' ').toLowerCase();
+
+  if (batchHaystack.includes(s)) return true;
+
+  // client-level fallback
+  return b.rows.some(r => rowMatchesSearch(r, s));
+}
+
+    return true;
+  });
+
+  let csv = "Trek,Date,Bookings,Pax,Turnover,Advance,Remaining,Status\n";
+
+  filtered.forEach(b => {
+    csv += [
+      b.trek,
+      b.date.toLocaleDateString('en-GB'),
+      b.rows.length,
+      b.pax,
+      b.turn,
+      b.adv,
+      (b.turn - b.adv),
+      b.date > today ? 'Upcoming' : 'Past'
+    ].join(',') + "\n";
+  });
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = 'batch-export.csv';
+  a.click();
+}
+
+/* ===== NEW: HISTORICAL INDEXES ===== */
+function renderHistorical(b){
+  let pax=0,turn=0,adv=0;
+  const trekMap={},dateMap={};
+  b.forEach(x=>{
+    pax+=x.pax; turn+=x.turn; adv+=x.adv;
+    trekMap[x.trek]=(trekMap[x.trek]||0)+x.pax;
+    const d=x.date.toLocaleDateString('en-GB');
+    dateMap[d]=(dateMap[d]||0)+x.pax;
+  });
+  idxBatches.textContent=b.length;
+  idxPax.textContent=pax;
+  idxTurn.textContent=money(turn);
+  idxAdv.textContent=money(adv);
+  idxOut.textContent=money(turn-adv);
+  idxTopTrek.textContent=Object.entries(trekMap).sort((a,b)=>b[1]-a[1])[0][0];
+  idxBusyDay.textContent=Object.entries(dateMap).sort((a,b)=>b[1]-a[1])[0][0];
+  idxBigBatch.textContent=b.sort((a,b)=>b.pax-a.pax)[0].trek;
+}
+
+function openMobileCard(b) {
+  const overlay = document.getElementById('mobileOverlay');
+  const flip = overlay.querySelector('.mobile-flip');
+  const front = overlay.querySelector('.mobile-front');
+  const back = overlay.querySelector('.mobile-back');
+const rows = b.__matchedClients?.length ? b.__matchedClients : b.rows;
+
+  flip.classList.remove('flipped');
+
+  front.innerHTML = `
+    <h3>${b.trek}</h3>
+    <p>${b.date.toLocaleDateString('en-GB')}</p>
+   <div class="trek-stats">
+  <div>Bookings<br>${rows.length}</div>
+  <div>Pax<br>${b.pax}</div>
+  <div>Turnover<br>${money(b.turn)}</div>
+  <div>Remaining<br>${money(b.turn-b.adv)}</div>
+</div>
+    <div class="advance-highlight">
+  <span>Advance Paid</span>
+  <strong>${money(b.adv)}</strong>
+</div>
+
+    <button onclick="this.closest('.mobile-flip').classList.add('flipped')">
+      View Clients →
+    </button>
+  `;
+
+  back.innerHTML = `
+    <button onclick="this.closest('.mobile-flip').classList.remove('flipped')">
+      ← Back
+    </button>
+    <div class="client-carousel">
+  ${rows.map(r => {
+    const pax = +cell(r, /pax|people|participants/) || 0;
+    const deal = +cell(r, /deal|price|amount/) || 0;
+    const adv  = +cell(r, /advance|paid/) || 0;
+    const email = COL.email >= 0 ? r[COL.email] : '';
+    const total = pax * deal;
+    const rem = total - adv;
+
+  return `
+  <div class="client-card">
+    <div class="client-strip"></div>
+
+    <div class="client-body">
+      <div class="client-fields">
+
+        <div class="row">
+          <span>Name</span>
+          <strong>${cell(r, /name|customer|client/) || 'Client'}</strong>
+        </div>
+
+        <div class="row">
+          <span>Email</span>
+          <strong>${email || '—'}</strong>
+        </div>
+
+        ${
+          cell(r, /phone|mobile/)
+            ? `<div class="row">
+                 <span>Phone</span>
+                 <strong>${cell(r, /phone|mobile/)}</strong>
+               </div>`
+            : ''
+        }
+
+        <div class="divider"></div>
+<div class="row">
+  <span>Trek Date</span>
+  <strong>${formatDate(b.date)}</strong>
+</div>
+        <div class="row">
+          <span>Pax</span>
+          <strong>${pax}</strong>
+        </div>
+
+        <div class="row">
+          <span>Total</span>
+          <strong>${money(total)}</strong>
+        </div>
+
+        <div class="row">
+          <span>Advance</span>
+          <strong>${money(adv)}</strong>
+        </div>
+
+        <div class="row">
+          <span>Remaining</span>
+          <strong>${money(rem)}</strong>
+        </div>
+
+       <div class="divider"></div>
+
+<div class="row small">
+  <span>Confirmation Email sent on</span>
+  <strong>${COL.date >= 0 ? formatDateTime(r[COL.date]) : '—'}</strong>
+</div>
+
+
+      </div>
+    </div>
+  </div>
+`;
+
+  }).join('')}
+</div>
+
+<div class="carousel-dots">
+  ${rows.map((_, i) =>
+    `<div class="carousel-dot ${i === 0 ? 'active' : ''}"></div>`
+  ).join('')}
+
+  `;
+
+  overlay.classList.remove('hidden');
+  // Hide export while overlay is open
+const mobileExport = document.getElementById('mobileExportWrap');
+if (mobileExport) mobileExport.classList.add('hidden');
+
+  const carousel = back.querySelector('.client-carousel');
+const dots = back.querySelectorAll('.carousel-dot');
+
+carousel.addEventListener('scroll', () => {
+  const index = Math.round(carousel.scrollLeft / carousel.clientWidth);
+  dots.forEach((d, i) => d.classList.toggle('active', i === index));
+});
+
+ if (!overlay.__handlerBound) {
+  overlay.__handlerBound = true;
+
+  overlay.onclick = e => {
+    if (e.target === overlay) {
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+
+        const mobileExport = document.getElementById('mobileExportWrap');
+        if (mobileExport && window.innerWidth <= 800) {
+          mobileExport.classList.toggle(
+            'hidden',
+            document.querySelector('#batchTable tbody').children.length === 0
+          );
+        }
+      }, 50);
+    }
+  };
+}
+
+
+}
+
+/* ===== NEW: CHARTS ===== */
+function renderCharts(b){
+  const m={},tm={},bk={'1–5':0,'6–10':0,'11–15':0,'16–20':0,'20+':0};
+  b.forEach(x=>{
+    const k=x.date.getFullYear()+'-'+String(x.date.getMonth()+1).padStart(2,'0');
+    if(!m[k]) m[k]={pax:0,turn:0,adv:0};
+    m[k].pax+=x.pax; m[k].turn+=x.turn; m[k].adv+=x.adv;
+    tm[x.trek]=(tm[x.trek]||0)+x.pax;
+    if(x.pax<=5)bk['1–5']++;else if(x.pax<=10)bk['6–10']++;
+    else if(x.pax<=15)bk['11–15']++;else if(x.pax<=20)bk['16–20']++;else bk['20+']++;
+  });
+
+  const lbl=Object.keys(m).sort();
+  new Chart(paxTrend,{type:'line',data:{labels:lbl,datasets:[{label:'Pax',data:lbl.map(l=>m[l].pax)}]}});
+  new Chart(turnTrend,{type:'line',data:{labels:lbl,datasets:[{label:'Turnover',data:lbl.map(l=>m[l].turn)}]}});
+  new Chart(advRemTrend,{type:'bar',data:{labels:lbl,datasets:[
+    {label:'Advance',data:lbl.map(l=>m[l].adv)},
+    {label:'Remaining',data:lbl.map(l=>m[l].turn-m[l].adv)}
+  ]},options:{scales:{x:{stacked:true},y:{stacked:true}}}});
+  new Chart(topTreks,{type:'bar',data:{labels:Object.keys(tm),datasets:[{label:'Pax',data:Object.values(tm)}]}});
+  new Chart(batchLoad,{type:'bar',data:{labels:Object.keys(bk),datasets:[{label:'Batches',data:Object.values(bk)}]}});
+}
+
+dateFilter.onchange = searchInput.oninput = render;
+</script>
+<div id="mobileOverlay" class="mobile-overlay hidden">
+  <div class="mobile-flip">
+    <div class="mobile-face mobile-front"></div>
+    <div class="mobile-face mobile-back"></div>
+  </div>
+</div>
+
+</body>
+</html>
