@@ -360,7 +360,7 @@ const supabaseClient = supabase.createClient(
 /* 🔐 AUTO REDIRECT IF SESSION EXISTS */
 supabaseClient.auth.getSession().then(({ data }) => {
   if (data.session) {
-    window.location.replace("/admin/admin/admin.html");
+    window.location.replace("/admin/admin.html");
   }
 });
 
@@ -417,7 +417,7 @@ async function login() {
 
   showStatus("✅ Access granted", "success");
   setTimeout(() => {
-    window.location.href = "/admin/admin/admin.html";
+    window.location.href = "/admin/admin.html";
   }, 600);
 }
 
@@ -430,6 +430,7 @@ document.getElementById("loginForm").addEventListener("submit", e => {
 
 </body>
 </html>
+
 
 
 
