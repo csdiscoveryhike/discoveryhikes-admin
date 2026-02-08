@@ -9,8 +9,8 @@
 <!-- Chart.js (added, nothing removed) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<style>
-   body {
+<style> 
+body {
   visibility: hidden;
 }
 
@@ -612,40 +612,6 @@ tr.selected td.status-cell::after {
   }
 }
 
-/* ================================
-   DESKTOP: STATUS CENTERED, ARROW RIGHT
-================================ */
-@media (min-width: 801px) {
-
-  #batchTable td.status-cell {
-    display: flex;
-    align-items: center;
-    justify-content: center; /* 👈 true centering */
-    position: relative;     /* keeps arrow positioning intact */
-  }
-
-  #batchTable td.status-cell::after {
-    right: 10px;            /* arrow stays right */
-  }
-}
-/* ================================
-   DESKTOP: TRUE CENTER MIDDLE STATUS
-================================ */
-@media (min-width: 801px) {
-
-  #batchTable td.status-cell {
-    display: flex;
-    align-items: center;      /* vertical center */
-    justify-content: center;  /* horizontal center */
-    position: relative;
-  }
-
-  #batchTable td.status-cell .status-pill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-}
 
 
 /* ================================
@@ -677,6 +643,26 @@ tr.selected td.status-cell::after {
   .drawer td.cell-sharing {
     text-align: center !important;
     font-weight: 600;
+  }
+}
+/* ================================
+   DESKTOP: STATUS CELL (FIXED)
+   Keeps row borders intact
+================================ */
+@media (min-width: 801px) {
+
+  /* Keep td as table-cell */
+  #batchTable td.status-cell {
+    text-align: center;
+    position: relative;
+  }
+
+  /* Flex only inside wrapper */
+  #batchTable td.status-cell .status-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
   }
 }
 
@@ -1007,6 +993,344 @@ tr.selected td.status-cell::after {
     content: none !important;
   }
 }
+/* =========================================================
+   OPS INTELLIGENCE CALENDAR (HYBRID VIEW)
+   • Read-only
+   • Non-intrusive
+   • Front-dashboard visual anchor
+========================================================= */
+
+/* Root container */
+#ops-calendar {
+  margin: 18px 0 22px;
+  padding: 18px;
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 18px;
+}
+
+/* Hidden state (search active, etc.) */
+#ops-calendar.hidden {
+  display: none;
+}
+
+/* ================= LEFT : CALENDAR ================= */
+
+.ops-cal-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ops-cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ops-cal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+.ops-cal-nav {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.ops-cal-nav:hover {
+  background: var(--surface-soft);
+}
+
+
+/* Calendar grid */
+.ops-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+}
+
+/* Day cell */
+.ops-day {
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 8px 8px 10px;
+  min-height: 96px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Outside current month */
+.ops-day.outside {
+  opacity: 0.45;
+}
+
+/* Today highlight */
+.ops-day.today {
+  border: 2px solid var(--brand-secondary);
+  box-shadow: 0 0 0 3px rgba(30,79,145,0.14);
+}
+
+.ops-day.today::after {
+  content: "TODAY";
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  color: var(--brand-secondary);
+}
+
+/* Date number */
+.ops-day .dnum {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+/* Pills wrapper */
+.ops-pills {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Single batch pill */
+.ops-pill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: rgba(148,163,184,0.18);
+  color: var(--text);
+}
+
+/* Upcoming batch */
+.ops-pill.upcoming {
+  background: rgba(16,185,129,0.18);
+  color: #059669;
+}
+
+/* Past batch */
+.ops-pill.past {
+  background: rgba(148,163,184,0.22);
+  color: var(--text-muted);
+}
+
+/* High pax warning */
+.ops-pill.high {
+  border-left: 4px solid #f59e0b;
+  padding-left: 7px;
+}
+
+/* Payment risk */
+.ops-pill.risk {
+  border-left: 4px solid #ef4444;
+  padding-left: 7px;
+}
+
+/* +more indicator */
+.ops-more {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ================= RIGHT : SUMMARY ================= */
+
+.ops-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Summary box */
+.ops-box {
+  background: var(--surface-soft);
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.ops-box h4 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.ops-box strong {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.ops-box .danger {
+  margin-top: 4px;
+  color: #ef4444;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 900px) {
+  #ops-calendar {
+    grid-template-columns: 1fr;
+  }
+
+  .ops-summary {
+    display: none;
+  }
+}
+@media (max-width: 800px) {
+  .ops-day.today {
+    background: linear-gradient(
+      135deg,
+      rgba(30,79,145,0.22),
+      rgba(30,79,145,0.08)
+    );
+    border: 2px solid var(--brand-secondary);
+  }
+}
+.ops-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0 4px;
+}
+
+.ops-weekdays span {
+  text-align: center;
+}
+/* ================================
+   WEEK SEPARATORS (SUN–SAT)
+   Visual only – no layout impact
+================================ */
+
+.ops-day.week-start {
+  box-shadow:
+    inset 0 2px 0 rgba(30,79,145,0.18);
+}
+
+/* Slight spacing so weeks breathe */
+.ops-day.week-start {
+  margin-top: 6px;
+}
+@media (min-width: 801px) {
+  .ops-day.week-start {
+    border-top: 2px solid rgba(30,79,145,0.18);
+  }
+}
+/* =========================================
+   MOBILE: TODAY MICRO TAG (ULTRA SMALL)
+========================================= */
+@media (max-width: 800px) {
+
+  .ops-day.today::after {
+    content: "Today";
+    top: 4px;
+    right: 6px;
+    font-size: 7px;          /* 👈 smaller */
+    font-weight: 600;
+    padding: 1px 4px;        /* 👈 tighter */
+    border-radius: 4px;
+    letter-spacing: 0.25px;
+    background: rgba(30,79,145,0.10);
+    color: var(--brand-secondary);
+  }
+
+  .ops-day.today .dnum {
+    font-size: 15px;
+    font-weight: 900;
+  }
+}
+
+
+@media (max-width: 800px) {
+
+  #batchTable tr.cal-focus {
+    animation: calFocus 1.35s cubic-bezier(.22,.61,.36,1);
+    border-left-width: 6px;
+    border-left-color: var(--brand-secondary);
+  }
+
+  @keyframes calFocus {
+    0% {
+      transform: translateX(0) scale(1);
+      box-shadow: 0 0 0 0 rgba(30,79,145,0.35);
+    }
+
+    18% {
+      transform: translateX(-5px) scale(1.025);
+    }
+
+    36% {
+      transform: translateX(5px) scale(1.025);
+    }
+
+    54% {
+      transform: translateX(-3px);
+      box-shadow: 0 0 0 10px rgba(30,79,145,0.20);
+    }
+
+    72% {
+      transform: translateX(2px);
+    }
+
+    100% {
+      transform: translateX(0) scale(1);
+      box-shadow: none;
+    }
+  }
+}
+
+
+
+
+@media (max-width: 800px) {
+
+  #batchTable tr.cal-focus::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background: linear-gradient(
+      180deg,
+      var(--brand-secondary),
+      transparent
+    );
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 
 </style>
 
@@ -1028,14 +1352,70 @@ tr.selected td.status-cell::after {
   </div>
 </div>
 
+<!-- ================= OPS INTELLIGENCE CALENDAR ================= -->
+<div id="ops-calendar" class="hidden">
+
+  <!-- LEFT : CALENDAR -->
+  <div class="ops-cal-pane">
+
+    <!-- Month Navigation -->
+    <div class="ops-cal-header">
+      <button class="ops-cal-nav" id="calPrev" aria-label="Previous month">‹</button>
+      <h3 id="calTitle">Month YYYY</h3>
+      <button class="ops-cal-nav" id="calNext" aria-label="Next month">›</button>
+    </div>
+
+    <div class="ops-weekdays">
+  <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span>
+  <span>Thu</span><span>Fri</span><span>Sat</span>
+</div>
+
+    <!-- Calendar Grid -->
+    <div class="ops-cal-grid" id="calGrid">
+      <!-- JS renders 42 day cells here -->
+    </div>
+
+  </div>
+
+  <!-- RIGHT : SUMMARY RAIL -->
+  <aside class="ops-summary">
+
+    <!-- Today Summary -->
+    <div class="ops-box" id="sumToday">
+      <!-- JS injects:
+           Today batches
+           Today pax
+           Today outstanding -->
+    </div>
+
+    <!-- Next 7 Days Summary -->
+    <div class="ops-box" id="sumNext">
+      <!-- JS injects:
+           Upcoming batches
+           Upcoming pax -->
+    </div>
+
+    <!-- Alerts -->
+    <div class="ops-box" id="sumAlerts">
+      <!-- JS injects:
+           High pax alerts
+           Payment risk alerts -->
+    </div>
+
+  </aside>
+
+</div>
+<!-- ============================================================= -->
+
 
 <!-- ===== YOUR ORIGINAL HTML (UNCHANGED) ===== -->
 <div class="filters">
   <select id="dateFilter">
-    <option value="upcoming">Upcoming Batches (from tomorrow)</option>
-    <option value="past">Past Batches (incl. today)</option>
-    <option value="all">All Batches</option>
-  </select>
+  <option value="all" selected>All Batches</option>
+  <option value="upcoming">Upcoming Batches (from tomorrow)</option>
+  <option value="past">Past Batches (incl. today)</option>
+</select>
+
   <input type="text" id="searchInput" placeholder="Search with any datafield..." />
   <button class="export-desktop" onclick="exportCSV()">Export CSV</button>
 
@@ -1180,8 +1560,9 @@ function formatDateTime(d) {
     String(x.getMinutes()).padStart(2,'0')
   );
 }
+let raw = [], headers = [];
+let allBatches = [];
 
-let raw=[], headers=[], allBatches=[];
 let COL = {};
 
 fetch(DATA_URL).then(r=>r.json()).then(d=>{
@@ -1206,6 +1587,7 @@ fetch(DATA_URL).then(r=>r.json()).then(d=>{
   render();
   renderHistorical(allBatches);
   renderCharts(allBatches);
+  renderOpsCalendar();
 });
 
 function colIndex(regex) {
@@ -1298,10 +1680,13 @@ function render() {
         <td data-label="Advance">${money(b.adv)}</td>
         <td data-label="Remaining">${money(b.turn - b.adv)}</td>
         <td data-label="Status" class="status-cell">
-  <span class="status-pill ${b.date > today ? 'status-upcoming' : 'status-past'}">
-    ${b.date > today ? 'Upcoming' : 'Past'}
-  </span>
+  <div class="status-wrap">
+    <span class="status-pill ${b.date > today ? 'status-upcoming' : 'status-past'}">
+      ${b.date > today ? 'Upcoming' : 'Past'}
+    </span>
+  </div>
 </td>
+
 
       `;
 
@@ -1620,7 +2005,7 @@ const rows = b.__matchedClients?.length ? b.__matchedClients : b.rows;
        <div class="divider"></div>
 
 <div class="row small">
-  <span>Confirmation Email sent on</span>
+  <span>Confirmation email sent on</span>
   <strong>${COL.date >= 0 ? formatDateTime(r[COL.date]) : '—'}</strong>
 </div>
 
@@ -1700,6 +2085,234 @@ function renderCharts(b){
 }
 
 dateFilter.onchange = searchInput.oninput = render;
+
+
+/* =========================================================
+   OPS INTELLIGENCE CALENDAR — LOGIC
+   Safe • Namespaced • Production-grade
+========================================================= */
+
+/* ---------- SAFE TIME BASE ---------- */
+const OPS_TODAY = today;
+OPS_TODAY.setHours(0, 0, 0, 0);
+
+/* ---------- STATE ---------- */
+let opsCalMonth = new Date(
+  OPS_TODAY.getFullYear(),
+  OPS_TODAY.getMonth(),
+  1
+);
+
+/* ---------- ELEMENTS ---------- */
+const opsCalendarEl = document.getElementById('ops-calendar');
+const opsGrid = document.getElementById('calGrid');
+const opsTitle = document.getElementById('calTitle');
+const opsPrev = document.getElementById('calPrev');
+const opsNext = document.getElementById('calNext');
+
+/* ---------- HELPERS ---------- */
+function opsKey(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+/* ---------- RENDER CALENDAR ---------- */
+function renderOpsCalendar() {
+  if (!Array.isArray(allBatches) || !allBatches.length) return;
+
+  /* Hide calendar when search is active */
+  if (searchInput.value.trim()) {
+    opsCalendarEl.classList.add('hidden');
+    return;
+  }
+
+  opsCalendarEl.classList.remove('hidden');
+  opsGrid.innerHTML = '';
+
+  opsTitle.textContent = opsCalMonth.toLocaleString('en-GB', {
+    month: 'long',
+    year: 'numeric'
+  });
+
+  /* Build date → batches map */
+  const batchMap = {};
+  allBatches.forEach(b => {
+    const k = opsKey(b.date);
+    (batchMap[k] ||= []).push(b);
+  });
+
+  /* Calendar grid start (Sunday) */
+  const firstDay = new Date(
+    opsCalMonth.getFullYear(),
+    opsCalMonth.getMonth(),
+    1
+  );
+  const gridStart = new Date(firstDay);
+  gridStart.setDate(firstDay.getDate() - firstDay.getDay());
+
+  /* 6 weeks = 42 cells */
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(gridStart);
+    d.setDate(gridStart.getDate() + i);
+
+    const key = opsKey(d);
+    const isToday = key === opsKey(OPS_TODAY);
+    const outside = d.getMonth() !== opsCalMonth.getMonth();
+
+    const cell = document.createElement('div');
+    cell.className =
+      'ops-day' +
+      (outside ? ' outside' : '') +
+      (isToday ? ' today' : '');
+
+    cell.innerHTML = `
+      <div class="dnum">${d.getDate()}</div>
+      <div class="ops-pills"></div>
+    `;
+
+    const pillWrap = cell.querySelector('.ops-pills');
+    const dayBatches = batchMap[key] || [];
+
+    dayBatches.slice(0, 3).forEach(b => {
+      const remaining = b.turn - b.adv;
+
+      const pill = document.createElement('div');
+      pill.className =
+        'ops-pill ' +
+        (b.date > OPS_TODAY ? 'upcoming ' : 'past ') +
+        (b.pax >= 20 ? 'high ' : '') +
+        (remaining > 0 && b.date <= OPS_TODAY ? 'risk' : '');
+
+      pill.textContent = `${b.trek} · ${b.pax}`;
+
+      /* Scroll to batch row on click */
+      pill.onclick = e => {
+        e.stopPropagation();
+        document
+          .querySelectorAll('#batchTable tbody tr')
+          .forEach(row => {
+            if (
+              row.children[0]?.textContent === b.trek &&
+              row.children[1]?.textContent ===
+                b.date.toLocaleDateString('en-GB')
+            ) {
+              row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+if (window.innerWidth <= 800) {
+
+  // Clear any previous focus
+  document
+    .querySelectorAll('#batchTable tr.cal-focus')
+    .forEach(r => r.classList.remove('cal-focus'));
+
+  // ⏱ Wait for scroll to mostly finish
+  setTimeout(() => {
+    row.classList.add('cal-focus');
+
+    setTimeout(() => {
+      row.classList.remove('cal-focus');
+    }, 900);
+
+  }, 350); // 👈 critical delay (tuned for smooth scroll)
+
+} else {
+  row.classList.add('selected');
+  setTimeout(() => row.classList.remove('selected'), 1500);
+}
+
+
+
+            }
+          });
+      };
+
+      pillWrap.appendChild(pill);
+    });
+
+    if (dayBatches.length > 3) {
+      const more = document.createElement('div');
+      more.className = 'ops-more';
+      more.textContent = `+${dayBatches.length - 3} more`;
+      pillWrap.appendChild(more);
+    }
+// Mark start of week (Sunday)
+if (d.getDay() === 0) {
+  cell.classList.add('week-start');
+}
+
+    opsGrid.appendChild(cell);
+  }
+
+  renderOpsSummary();
+}
+
+/* ---------- SUMMARY RAIL ---------- */
+function renderOpsSummary() {
+  let todayB = 0,
+    todayP = 0,
+    todayO = 0;
+  let nextB = 0,
+    nextP = 0;
+  let highPax = 0,
+    paymentRisk = 0;
+
+  allBatches.forEach(b => {
+    const diff = (b.date - OPS_TODAY) / 86400000;
+
+    if (opsKey(b.date) === opsKey(OPS_TODAY)) {
+      todayB++;
+      todayP += b.pax;
+      todayO += b.turn - b.adv;
+    }
+
+    if (diff > 0 && diff <= 7) {
+      nextB++;
+      nextP += b.pax;
+    }
+
+    if (b.pax >= 20 && b.date >= OPS_TODAY) highPax++;
+    if (b.turn - b.adv > 0 && b.date <= OPS_TODAY) paymentRisk++;
+  });
+
+  sumToday.innerHTML = `
+    <h4>Today</h4>
+    <strong>${todayB}</strong> batches<br>
+    <strong>${todayP}</strong> pax
+    <p class="danger">₹${todayO.toLocaleString('en-IN')} outstanding</p>
+  `;
+
+  sumNext.innerHTML = `
+    <h4>Next 7 Days</h4>
+    <strong>${nextB}</strong> batches<br>
+    <strong>${nextP}</strong> pax
+  `;
+
+  sumAlerts.innerHTML = `
+    <h4>Alerts</h4>
+    ⚠ ${highPax} high-pax<br>
+    ⚠ ${paymentRisk} payment-critical
+  `;
+}
+
+/* ---------- NAVIGATION ---------- */
+opsPrev.onclick = () => {
+  opsCalMonth.setMonth(opsCalMonth.getMonth() - 1);
+  renderOpsCalendar();
+};
+
+opsNext.onclick = () => {
+  opsCalMonth.setMonth(opsCalMonth.getMonth() + 1);
+  renderOpsCalendar();
+};
+
+/* ---------- SEARCH SYNC ---------- */
+searchInput.addEventListener('input', renderOpsCalendar);
+
+/* ---------- AUTO-HOOK INTO EXISTING RENDER ---------- */
+const _baseRender = render;
+render = function () {
+  _baseRender();
+  renderOpsCalendar();
+};
 </script>
 <div id="mobileOverlay" class="mobile-overlay hidden">
   <div class="mobile-flip">
