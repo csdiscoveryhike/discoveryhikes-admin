@@ -9,7 +9,7 @@
 <!-- Chart.js (added, nothing removed) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<style> 
+<style>
 body {
   visibility: hidden;
 }
@@ -1119,6 +1119,8 @@ tr.selected td.status-cell::after {
   text-overflow: ellipsis;
   background: rgba(148,163,184,0.18);
   color: var(--text);
+    position: relative; /* ✅ ADD THIS */
+
 }
 
 /* Upcoming batch */
@@ -1143,6 +1145,52 @@ tr.selected td.status-cell::after {
 .ops-pill.risk {
   border-left: 4px solid #ef4444;
   padding-left: 7px;
+}
+/* ================================
+   CALENDAR PILL – CLICK AFFORDANCE
+================================ */
+.ops-pill {
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+/* Desktop hover */
+@media (hover: hover) {
+  .ops-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+  }
+}
+/* ================================
+   MOBILE TAP FEEDBACK
+================================ */
+@media (max-width: 800px) {
+
+  .ops-pill:active {
+    transform: scale(0.96);
+    box-shadow: 0 0 0 8px rgba(30,79,145,0.18);
+  }
+}
+/* ================================
+   SUBTLE RIPPLE EFFECT
+================================ */
+.ops-pill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 800px) {
+  .ops-pill:active::after {
+    opacity: 1;
+    background: rgba(30,79,145,0.15);
+  }
 }
 
 /* +more indicator */
@@ -1187,6 +1235,39 @@ tr.selected td.status-cell::after {
   font-weight: 700;
   font-size: 13px;
 }
+/* =========================================
+   SUMMARY TILE COLOR THEMES
+========================================= */
+
+/* Today */
+#sumToday {
+  background: linear-gradient(
+    135deg,
+    rgba(30,79,145,0.22),
+    rgba(30,79,145,0.10)
+  );
+  border-left: 4px solid var(--brand-secondary);
+}
+
+/* Next 7 Days */
+#sumNext {
+  background: linear-gradient(
+    135deg,
+    rgba(16,185,129,0.22),
+    rgba(16,185,129,0.10)
+  );
+  border-left: 4px solid #10b981;
+}
+
+/* Alerts */
+#sumAlerts {
+  background: linear-gradient(
+    135deg,
+    rgba(245,158,11,0.22),
+    rgba(245,158,11,0.10)
+  );
+  border-left: 4px solid #f59e0b;
+}
 
 /* ================= RESPONSIVE ================= */
 
@@ -1196,7 +1277,7 @@ tr.selected td.status-cell::after {
   }
 
   .ops-summary {
-    display: none;
+    display: flex;
   }
 }
 @media (max-width: 800px) {
@@ -1331,6 +1412,207 @@ tr.selected td.status-cell::after {
     transition-duration: 0.01ms !important;
   }
 }
+/* =========================================
+   MOBILE: SUMMARY → HORIZONTAL SLIDER
+   Same content, new layout
+========================================= */
+@media (max-width: 800px) {
+
+  /* Place summary ABOVE calendar */
+  .ops-summary {
+    order: -1;                 /* 👈 moves it above calendar grid */
+    flex-direction: row;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 6px 2px 10px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ops-summary::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Each summary box becomes a thin tile */
+  .ops-summary .ops-box {
+    flex: 0 0 84%;
+    box-shadow: var(--shadow-sm);
+
+    flex: 0 0 84%;
+    max-width: 84%;
+    min-width: 260px;
+
+    padding: 5px 9px;
+    border-radius: 18px;
+    scroll-snap-align: center;
+  }
+
+  .ops-summary .ops-box h4 {
+    font-size: 11px;
+  }
+
+  .ops-summary .ops-box strong {
+    font-size: 20px;
+  }
+}
+@media (max-width: 800px) {
+  .ops-summary::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 24px;
+    pointer-events: none;
+    background: linear-gradient(
+      to right,
+      rgba(255,255,255,0),
+      var(--surface)
+    );
+  }
+}
+
+/* ================================
+   TREK PERFORMANCE (EXECUTIVE)
+================================ */
+
+.trek-performance {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Base stat card */
+.trek-stat {
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Trek name */
+.trek-stat strong {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* Meta */
+.trek-stat span {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+/* 🟡 Gold – Top trek */
+.trek-gold {
+  background: linear-gradient(
+    135deg,
+    rgba(234,179,8,0.28),
+    rgba(234,179,8,0.12)
+  );
+  border-left: 4px solid #eab308;
+}
+
+/* 🔵 Blue – Second */
+.trek-blue {
+  background: linear-gradient(
+    135deg,
+    rgba(59,130,246,0.26),
+    rgba(59,130,246,0.12)
+  );
+  border-left: 4px solid #3b82f6;
+}
+
+/* 🟣 Violet – Third */
+.trek-violet {
+  background: linear-gradient(
+    135deg,
+    rgba(139,92,246,0.26),
+    rgba(139,92,246,0.12)
+  );
+  border-left: 4px solid #8b5cf6;
+}
+/* =========================================
+   MOBILE: TREK PERFORMANCE → SINGLE SLIDE
+========================================= */
+@media (max-width: 800px) {
+
+  #sumTreks {
+    overflow: hidden;
+    position: relative;
+  }
+
+  #sumTreks .trek-stat {
+    display: none;            /* hide all by default */
+  }
+
+  #sumTreks .trek-stat.active {
+    display: flex;            /* show only one */
+  }
+}
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 84px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+@media (max-width: 800px) {
+  .ops-pill::before {
+    content: "↘";
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    opacity: 0.5;
+  }
+}
+/* =========================================
+   DESKTOP: TREK PERFORMANCE OUTER BORDER
+========================================= */
+@media (min-width: 801px) {
+
+  #sumTreks {
+    border-radius: 18px;
+    padding: 12px;
+    background:
+      linear-gradient(var(--surface-soft), var(--surface-soft)) padding-box,
+      linear-gradient(
+        135deg,
+        rgba(234,179,8,0.45),
+        rgba(59,130,246,0.45),
+        rgba(139,92,246,0.45)
+      ) border-box;
+    border: 2px solid transparent;
+  }
+
+  /* Slight spacing so inner tiles breathe */
+  #sumTreks .trek-stat {
+    background-clip: padding-box;
+  }
+}
+/* =========================================
+   MOBILE: TREK PERFORMANCE OUTER BORDER
+========================================= */
+@media (max-width: 800px) {
+
+  #sumTreks {
+    border-radius: 18px;
+    padding: 8px;
+    border: 2px solid var(--border);
+    transition: border-color 0.35s ease;
+  }
+
+  /* Dynamic border colors */
+  #sumTreks.border-gold   { border-color: #eab308; }
+  #sumTreks.border-blue   { border-color: #3b82f6; }
+  #sumTreks.border-violet { border-color: #8b5cf6; }
+}
 
 </style>
 
@@ -1401,6 +1683,7 @@ tr.selected td.status-cell::after {
            High pax alerts
            Payment risk alerts -->
     </div>
+<div class="ops-box trek-performance" id="sumTreks"></div>
 
   </aside>
 
@@ -1520,6 +1803,7 @@ tr.selected td.status-cell::after {
 
 
 </div>
+
 <script>
 
 /* ================= PREVENT BF CACHE ================= */
@@ -1539,6 +1823,15 @@ document.body.style.visibility = "visible";
 const DATA_URL = 'https://script.google.com/macros/s/AKfycbz2VgvO8CFo6b-1f02dnnW5s2DDZfv9Ai0U5oiNg6laOStze00NF3TcL0UnOQP6pCsucQ/exec';
 const TREK=3, DATE=4, DEAL=5, PAX=6, ADV=7;
 const today = new Date(); today.setHours(0,0,0,0);
+let isAutoScrolling = false;
+
+function lockScroll() {
+  isAutoScrolling = true;
+}
+
+function unlockScroll() {
+  isAutoScrolling = false;
+}
 
 const norm = s => (s||'').toLowerCase().trim();
 const money = n => '₹'+n.toLocaleString('en-IN');
@@ -1560,6 +1853,26 @@ function formatDateTime(d) {
     String(x.getMinutes()).padStart(2,'0')
   );
 }
+
+function getCompletedTrekStats(batches) {
+  const map = {};
+
+  batches.forEach(b => {
+    if (b.date >= today) return; // ✅ past only
+
+    if (!map[b.trek]) {
+      map[b.trek] = { trek: b.trek, batches: 0, pax: 0 };
+    }
+
+    map[b.trek].batches += 1;
+    map[b.trek].pax += b.pax;
+  });
+
+  return Object.values(map)
+    .sort((a, b) => b.pax - a.pax)
+    .slice(0, 3);
+}
+
 let raw = [], headers = [];
 let allBatches = [];
 
@@ -2183,6 +2496,8 @@ function renderOpsCalendar() {
         (remaining > 0 && b.date <= OPS_TODAY ? 'risk' : '');
 
       pill.textContent = `${b.trek} · ${b.pax}`;
+pill.setAttribute('role', 'button');
+pill.setAttribute('aria-label', `Open ${b.trek} batch`);
 
       /* Scroll to batch row on click */
       pill.onclick = e => {
@@ -2195,26 +2510,38 @@ function renderOpsCalendar() {
               row.children[1]?.textContent ===
                 b.date.toLocaleDateString('en-GB')
             ) {
-              row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+lockScroll();
+
+row.scrollIntoView({
+  behavior: 'smooth',
+  block: 'center'
+});
+
+// Unlock scroll shortly after smooth scroll finishes
+setTimeout(() => {
+  unlockScroll();
+}, 550);
 
 if (window.innerWidth <= 800) {
+
 
   // Clear any previous focus
   document
     .querySelectorAll('#batchTable tr.cal-focus')
     .forEach(r => r.classList.remove('cal-focus'));
 
-  // ⏱ Wait for scroll to mostly finish
+  // ⏱ Wait for scroll to settle
   setTimeout(() => {
     row.classList.add('cal-focus');
 
+    // 🔓 Release scroll AFTER animation
     setTimeout(() => {
       row.classList.remove('cal-focus');
-    }, 900);
+    }, 1200); // matches animation length
 
-  }, 350); // 👈 critical delay (tuned for smooth scroll)
-
-} else {
+  }, 400);
+}
+else {
   row.classList.add('selected');
   setTimeout(() => row.classList.remove('selected'), 1500);
 }
@@ -2248,15 +2575,23 @@ if (d.getDay() === 0) {
 /* ---------- SUMMARY RAIL ---------- */
 function renderOpsSummary() {
   let todayB = 0,
-    todayP = 0,
-    todayO = 0;
+      todayP = 0,
+      todayO = 0;
   let nextB = 0,
-    nextP = 0;
+      nextP = 0;
   let highPax = 0,
-    paymentRisk = 0;
+      multiTrekDays = 0;
+
+  const upcomingDayMap = {}; // ✅ MUST be here
 
   allBatches.forEach(b => {
     const diff = (b.date - OPS_TODAY) / 86400000;
+
+    // Count upcoming treks per date
+    if (diff > 0) {
+      const k = opsKey(b.date);
+      upcomingDayMap[k] = (upcomingDayMap[k] || 0) + 1;
+    }
 
     if (opsKey(b.date) === opsKey(OPS_TODAY)) {
       todayB++;
@@ -2269,9 +2604,16 @@ function renderOpsSummary() {
       nextP += b.pax;
     }
 
-    if (b.pax >= 20 && b.date >= OPS_TODAY) highPax++;
-    if (b.turn - b.adv > 0 && b.date <= OPS_TODAY) paymentRisk++;
+    // High pax = batch-based (correct)
+    if (b.pax >= 20 && b.date >= OPS_TODAY) {
+      highPax++;
+    }
   });
+
+  // Count dates with more than one trek
+  multiTrekDays = Object.values(upcomingDayMap)
+    .filter(count => count > 1).length;
+
 
   sumToday.innerHTML = `
     <h4>Today</h4>
@@ -2287,10 +2629,33 @@ function renderOpsSummary() {
   `;
 
   sumAlerts.innerHTML = `
-    <h4>Alerts</h4>
-    ⚠ ${highPax} high-pax<br>
-    ⚠ ${paymentRisk} payment-critical
-  `;
+  <h4>Alerts</h4>
+  ⚠ ${highPax} high-pax batches<br>
+  ⚠ ${multiTrekDays} multi-trek days
+`;
+
+  const topTreks = getCompletedTrekStats(allBatches);
+
+const colors = ['trek-gold', 'trek-blue', 'trek-violet'];
+
+sumTreks.innerHTML = `
+  <h4>Trek Performance</h4>
+  ${
+    topTreks.length
+      ? topTreks.map((t, i) => `
+          <div class="trek-stat ${colors[i]}">
+            <strong>${t.trek}</strong>
+            <span>${t.batches} batches · ${t.pax} pax served</span>
+          </div>
+        `).join('')
+      : `<span class="note">No completed treks yet</span>`
+  }
+`;
+  // 🔁 reset unified mobile slider after DOM rebuild
+  if (window.innerWidth <= 800 && window.__resetUnifiedSlider) {
+    window.__resetUnifiedSlider();
+  }
+
 }
 
 /* ---------- NAVIGATION ---------- */
@@ -2313,6 +2678,125 @@ render = function () {
   _baseRender();
   renderOpsCalendar();
 };
+/* =========================================
+   MOBILE: UNIFIED SUMMARY + TREK AUTO SLIDE
+   Order:
+   Today → Next → Alerts → Trek1 → Trek2 → Trek3 → loop
+========================================= */
+(function autoSlideUnified() {
+  const summary = document.querySelector('.ops-summary');
+  const trekBox = document.getElementById('sumTreks');
+  if (!summary || !trekBox) return;
+let cachedSlides = [];
+function refreshSlides() {
+  const base = Array.from(
+    summary.querySelectorAll('.ops-box:not(#sumTreks)')
+  );
+
+  const treks = Array.from(
+    trekBox.querySelectorAll('.trek-stat')
+  );
+
+  cachedSlides = [...base, ...treks];
+}
+
+  let index = 0;
+  let timer = null;
+  let userInteracted = false;
+  // 🔁 expose reset hook for re-render
+  window.__resetUnifiedSlider = function () {
+    refreshSlides();
+    index = 0;
+    if (cachedSlides.length) slideTo(0);
+  };
+
+  function activateTrek(i) {
+  const treks = trekBox.querySelectorAll('.trek-stat');
+
+  treks.forEach((t, idx) =>
+    t.classList.toggle('active', idx === i)
+  );
+
+  // 🎨 Dynamic outer border color (mobile only)
+  trekBox.classList.remove('border-gold', 'border-blue', 'border-violet');
+
+  if (treks[i]) {
+    if (treks[i].classList.contains('trek-gold')) {
+      trekBox.classList.add('border-gold');
+    } else if (treks[i].classList.contains('trek-blue')) {
+      trekBox.classList.add('border-blue');
+    } else if (treks[i].classList.contains('trek-violet')) {
+      trekBox.classList.add('border-violet');
+    }
+  }
+}
+
+
+  function slideTo(i) {
+  const slides = cachedSlides;
+
+    const el = slides[i];
+    if (!el) return;
+
+    // Trek slides
+    if (el.classList.contains('trek-stat')) {
+      summary.scrollTo({
+        left: trekBox.offsetLeft - summary.offsetLeft,
+        behavior: 'smooth'
+      });
+
+      const trekIndex = Array.from(
+        trekBox.querySelectorAll('.trek-stat')
+      ).indexOf(el);
+
+      activateTrek(trekIndex);
+    }
+    // Normal summary slides
+    else {
+      summary.scrollTo({
+        left: el.offsetLeft - summary.offsetLeft,
+        behavior: 'smooth'
+      });
+    }
+  }
+
+  function next() {
+    if (userInteracted || isAutoScrolling) return;
+  if (!cachedSlides.length) return; // 👈 ADD THIS
+
+index = (index + 1) % cachedSlides.length;
+    slideTo(index);
+  }
+
+  function start() {
+  stop();
+  refreshSlides();
+  index = 0;
+  if (cachedSlides.length) slideTo(0);
+  timer = setInterval(next, 3500);
+}
+
+  function stop() {
+    if (timer) clearInterval(timer);
+  }
+
+  // Pause on interaction
+  ['touchstart', 'mousedown', 'wheel'].forEach(evt => {
+    summary.addEventListener(evt, () => {
+      userInteracted = true;
+      stop();
+      setTimeout(() => {
+        userInteracted = false;
+        start();
+      }, 6000);
+    }, { passive: true });
+  });
+
+  if (window.innerWidth <= 800) {
+    start();
+  }
+})();
+
 </script>
 <div id="mobileOverlay" class="mobile-overlay hidden">
   <div class="mobile-flip">
