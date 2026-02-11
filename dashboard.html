@@ -2025,6 +2025,21 @@ window.addEventListener("pageshow", e => {
   before this page is served.
 */
 document.body.classList.add("loaded");
+const logoutChannel = new BroadcastChannel('admin-session');
+
+logoutChannel.onmessage = (event) => {
+  if (event.data === 'force-logout') {
+    document.body.innerHTML = '';
+    location.reload();
+  }
+};
+
+document.getElementById("logoutBtnDash").addEventListener("click", function () {
+  logoutChannel.postMessage('force-logout');
+  this.classList.add("loading");
+  this.textContent = "Logging out…";
+  window.location.href = "/cdn-cgi/access/logout";
+});
 
 
 /* ===== YOUR ORIGINAL SCRIPT (UNCHANGED, ONLY EXTENDED) ===== */
