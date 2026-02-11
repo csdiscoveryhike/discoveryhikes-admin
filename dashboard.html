@@ -2013,34 +2013,35 @@ tr.selected td.status-cell::after {
 </div>
 
 <script>
+/* ================= FORCE LOGOUT SYNC ================= */
+window.addEventListener('storage', (event) => {
+  if (event.key === 'force-logout') {
+
+    // Stop rendering immediately
+    document.documentElement.innerHTML = '';
+
+    // Optional hard navigation
+    window.location.replace("/cdn-cgi/access/logout");
+  }
+});
+document.getElementById("logoutBtnDash").addEventListener("click", function () {
+
+  // Notify other tabs
+  localStorage.setItem('force-logout', Date.now());
+
+  this.classList.add("loading");
+  this.textContent = "Logging out…";
+
+  // Hard logout
+  window.location.replace("/cdn-cgi/access/logout");
+});
 
 /* ================= PREVENT BF CACHE ================= */
 window.addEventListener("pageshow", e => {
   if (e.persisted) location.reload();
 });
 
-/* ================= SHOW PAGE ================= */
-/*
-  Cloudflare Access guarantees authentication
-  before this page is served.
-*/
-document.body.classList.add("loaded");
-const logoutChannel = new BroadcastChannel('admin-session');
-
-logoutChannel.onmessage = (event) => {
-  if (event.data === 'force-logout') {
-    document.body.innerHTML = '';
-    location.reload();
-  }
-};
-
-document.getElementById("logoutBtnDash").addEventListener("click", function () {
-  logoutChannel.postMessage('force-logout');
-  this.classList.add("loading");
-  this.textContent = "Logging out…";
-  window.location.href = "/cdn-cgi/access/logout";
-});
-
+/* ================= SHOW PAGE ================= *
 
 /* ===== YOUR ORIGINAL SCRIPT (UNCHANGED, ONLY EXTENDED) ===== */
 const DATA_URL = 'https://script.google.com/macros/s/AKfycbz2VgvO8CFo6b-1f02dnnW5s2DDZfv9Ai0U5oiNg6laOStze00NF3TcL0UnOQP6pCsucQ/exec';

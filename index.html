@@ -428,6 +428,12 @@ body.dark .restricted {
 
 
 <script>
+window.addEventListener('storage', (event) => {
+  if (event.key === 'force-logout') {
+    document.body.innerHTML = '';
+    location.reload();
+  }
+});
 
 /* ================= PREVENT BF CACHE ================= */
 window.addEventListener("pageshow", e => {
@@ -453,27 +459,17 @@ function toggleDark() {
 
 
 /* ================= LOGOUT ================= */
-const logoutChannel = new BroadcastChannel('admin-session');
+document.getElementById("logoutBtn").addEventListener("click", function () {
 
-logoutChannel.onmessage = (event) => {
-  if (event.data === 'force-logout') {
-    document.body.innerHTML = '';
-    location.reload();
-  }
-};
+  // Trigger other tabs
+  localStorage.setItem('force-logout', Date.now());
 
-const logoutBtn = document.getElementById("logoutBtn");
+  this.classList.add("loading");
+  this.textContent = "Logging out…";
 
-if (logoutBtn) {
-  logoutBtn.addEventListener("click", function () {
-    logoutChannel.postMessage('force-logout');
+  window.location.href = "/cdn-cgi/access/logout";
+});
 
-    this.classList.add("loading");
-    this.textContent = "Logging out…";
-
-    window.location.href = "/cdn-cgi/access/logout";
-  });
-}
 
 </script>
 
