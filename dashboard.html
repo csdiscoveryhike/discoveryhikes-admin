@@ -100,17 +100,27 @@ h1 { margin-bottom: 4px; }
 /* =========================================================
    FILTER BAR
 ========================================================= */
+/* =========================================
+   FILTER BAR – ORANGE OUTER GLOW
+========================================= */
 .filters {
   background: var(--surface);
   padding: 12px;
-  border-radius: 12px;
+  border-radius: 14px;
+
   display: grid;
   grid-template-columns: 200px 1fr auto;
   gap: 10px;
-  margin-bottom: 14px;
-  box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+
+  border: 2px solid rgba(245,158,11,0.85); /* Orange edge */
+
+  box-shadow:
+    0 0 0 4px rgba(245,158,11,0.14),  /* Outer glow */
+    var(--shadow-md);
 }
 
+/* Base fields */
 .filters select,
 .filters input,
 .filters button {
@@ -120,6 +130,27 @@ h1 { margin-bottom: 4px; }
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 8px;
+  transition: all 0.25s ease;
+}
+
+/* =========================================
+   GRADIENT ON FOCUS (INSIDE ONLY)
+========================================= */
+.filters input:focus,
+.filters select:focus {
+  outline: none;
+
+  background:
+    linear-gradient(var(--surface-soft), var(--surface-soft)) padding-box,
+    linear-gradient(
+      135deg,
+      var(--brand-primary),
+      var(--brand-secondary)
+    ) border-box;
+
+  border: 1.5px solid transparent;
+
+  box-shadow: 0 0 0 3px rgba(30,79,145,0.18);
 }
 
 /* =========================================================
