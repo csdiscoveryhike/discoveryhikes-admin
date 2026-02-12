@@ -1321,29 +1321,36 @@ tr.selected td.status-cell::after {
     border-top: 2px solid rgba(30,79,145,0.18);
   }
 }
+
 /* =========================================
-   MOBILE: TODAY MICRO TAG (ULTRA SMALL)
+   MOBILE: TODAY = NUMBER BADGE (NO TEXT)
 ========================================= */
 @media (max-width: 800px) {
 
+  /* Remove any Today text */
   .ops-day.today::after {
-    content: "Today";
-    top: 4px;
-    right: 6px;
-    font-size: 7px;          /* 👈 smaller */
-    font-weight: 600;
-    padding: 1px 4px;        /* 👈 tighter */
-    border-radius: 4px;
-    letter-spacing: 0.25px;
-    background: rgba(30,79,145,0.10);
-    color: var(--brand-secondary);
+    content: none !important;
   }
 
+  /* Turn date number into a badge */
   .ops-day.today .dnum {
-    font-size: 15px;
-    font-weight: 900;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 26px;
+    height: 26px;
+
+    border-radius: 999px;
+    background: var(--brand-secondary);
+    color: white;
+
+    font-size: 13px;
+    font-weight: 800;
   }
+
 }
+
 
 
 @media (max-width: 800px) {
