@@ -1004,28 +1004,59 @@ function renderTable(vouchers) {
 async function quickRedeem(code) {
   if (!confirm("Redeem this voucher?")) return;
 
-  await fetch(`https://YOUR_PROJECT_REF.functions.supabase.co/redeem-voucher`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ voucher_code: code })
-  });
+  try {
+    const response = await fetch(
+      "https://evxkiwprlcxxfvzftttb.supabase.co/functions/v1/redeem-voucher",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2eGtpd3BybGN4eGZ2emZ0dHRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1ODIzMDIsImV4cCI6MjA4NzE1ODMwMn0.P0S9DIlKvECrzD83YcXuXDcL0dn5VDOdcrL3uKUvcIA",
+          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2eGtpd3BybGN4eGZ2emZ0dHRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1ODIzMDIsImV4cCI6MjA4NzE1ODMwMn0.P0S9DIlKvECrzD83YcXuXDcL0dn5VDOdcrL3uKUvcIA"
+        },
+        body: JSON.stringify({ voucher_code: code })
+      }
+    );
 
-  fetchVouchers(searchInput.value.trim());
-  showToast("Voucher redeemed!");
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Redeem failed");
+
+    showToast("Voucher redeemed!");
+    fetchVouchers(searchInput.value.trim());
+
+  } catch (err) {
+    showToast(err.message, true);
+  }
 }
 
 async function quickCancel(code) {
   if (!confirm("Cancel this voucher?")) return;
 
-  await fetch(`https://YOUR_PROJECT_REF.functions.supabase.co/cancel-voucher`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ voucher_code: code })
-  });
+  try {
+    const response = await fetch(
+      "https://evxkiwprlcxxfvzftttb.supabase.co/functions/v1/cancel-voucher",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2eGtpd3BybGN4eGZ2emZ0dHRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1ODIzMDIsImV4cCI6MjA4NzE1ODMwMn0.P0S9DIlKvECrzD83YcXuXDcL0dn5VDOdcrL3uKUvcIA",
+          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2eGtpd3BybGN4eGZ2emZ0dHRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1ODIzMDIsImV4cCI6MjA4NzE1ODMwMn0.P0S9DIlKvECrzD83YcXuXDcL0dn5VDOdcrL3uKUvcIA"
+        },
+        body: JSON.stringify({ voucher_code: code })
+      }
+    );
 
-  fetchVouchers(searchInput.value.trim());
-  showToast("Voucher cancelled!");
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Cancel failed");
+
+    showToast("Voucher cancelled!");
+    fetchVouchers(searchInput.value.trim());
+
+  } catch (err) {
+    showToast(err.message, true);
+  }
 }
+
 </script>
 
 
