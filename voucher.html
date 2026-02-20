@@ -871,12 +871,13 @@ showToast("Please fill required fields.", true);
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      email,
-      client_name,
-      amount,
-      expiry_date,
-      purpose
-    })
+  email,
+  client_name,
+  amount,
+  expiry_date,
+  purpose,
+  admin_email: ADMIN_EMAIL
+})
   }
 );
 let data;
