@@ -866,15 +866,14 @@ showToast("Please fill required fields.", true);
   "https://admin.discoveryhikes.in/functions/v1/generate-voucher",
   {
     method: "POST",
+    credentials: "include", // 🔥 REQUIRED
     headers: {
-      "Content-Type": "application/json",
-      "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2eGtpd3BybGN4eGZ2emZ0dHRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1ODIzMDIsImV4cCI6MjA4NzE1ODMwMn0.P0S9DIlKvECrzD83YcXuXDcL0dn5VDOdcrL3uKUvcIA",
-      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2eGtpd3BybGN4eGZ2emZ0dHRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1ODIzMDIsImV4cCI6MjA4NzE1ODMwMn0.P0S9DIlKvECrzD83YcXuXDcL0dn5VDOdcrL3uKUvcIA"
+      "Content-Type": "application/json"
     },
     body: JSON.stringify({
       email,
       client_name,
-      amount: Number(amount),
+      amount,
       expiry_date,
       purpose
     })
