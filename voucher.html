@@ -796,6 +796,27 @@ window.addEventListener("pageshow", e => {
 /* ================= SHOW PAGE ================= */
 document.body.style.visibility = "visible";
 
+// ===== GET ADMIN EMAIL FROM CLOUDFLARE JWT =====
+function getAdminEmailFromJWT() {
+  const cookie = document.cookie
+    .split("; ")
+    .find(row => row.startsWith("CF_Authorization="));
+
+  if (!cookie) return null;
+
+  const token = cookie.split("=")[1];
+
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.email || null;
+  } catch {
+    return null;
+  }
+}
+
+const ADMIN_EMAIL = getAdminEmailFromJWT();
+
+console.log("Voucher Page Admin:", ADMIN_EMAIL);
 /* ================= DARK MODE ================= */
 const storedTheme = localStorage.getItem("dh-theme");
 if (storedTheme === "dark") document.body.classList.add("dark");
